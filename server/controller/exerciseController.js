@@ -4,10 +4,24 @@ const SetLog = require("../model/SetLog");
 
 const createBodyPart = async (req, res) => {
   try {
+    const userId = req.user?.userId || req.user?.id || req.user;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!req.body || typeof req.body !== "object") {
+      return res.status(400).json({ message: "Request body is required" });
+    }
+
     const { name } = req.body;
 
+    if (!name || typeof name !== "string") {
+      return res.status(400).json({ message: "'name' is required" });
+    }
+
     const bodyPart = new BodyPart({
-      userId: req.user && req.user.id ? req.user.id : req.user,
+      userId,
       name
     });
 
@@ -21,10 +35,24 @@ const createBodyPart = async (req, res) => {
 
 const createExercise = async (req, res) => {
   try {
+    const userId = req.user?.userId || req.user?.id || req.user;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!req.body || typeof req.body !== "object") {
+      return res.status(400).json({ message: "Request body is required" });
+    }
+
     const { bodyPartId, name } = req.body;
 
+    if (!bodyPartId || !name) {
+      return res.status(400).json({ message: "'bodyPartId' and 'name' are required" });
+    }
+
     const exercise = new Exercise({
-      userId: req.user && req.user.id ? req.user.id : req.user,
+      userId,
       bodyPart: bodyPartId,
       name
     });
@@ -39,15 +67,43 @@ const createExercise = async (req, res) => {
 
 const logSet = async (req, res) => {
   try {
+    const userId = req.user?.userId || req.user?.id || req.user;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!req.body || typeof req.body !== "object") {
+      return res.status(400).json({ message: "Request body is required" });
+    }
+
     const { exerciseId, weightKg, reps } = req.body;
 
-    const userId = req.user && req.user.id ? req.user.id : req.user;
+    if (!exerciseId || weightKg == null || reps == null) {
+      return res.status(400).json({ message: "'exerciseId', 'weightKg' and 'reps' are required" });
+    }
 
-    const lastSet = await SetLog.find({ userId, exercise: exerciseId })
-      .sort({ date: -1, setNumber: -1 })
-      .limit(1);
+    // Calculate today's date range (00:00:00.000 - 23:59:59.999)
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
 
-    const setNumber = lastSet.length > 0 ? lastSet[0].setNumber + 1 : 1;
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Find sets for this user & exercise for today
+    const todaySets = await SetLog.find({
+      userId,
+      exercise: exerciseId,
+      date: { $gte: startOfDay, $lt: endOfDay }
+    }).sort({ setNumber: 1 });
+
+    if (todaySets.length >= 3) {
+      return res.status(400).json({
+        message: "Maximum 3 sets per exercise per day reached"
+      });
+    }
+
+    const setNumber = todaySets.length + 1;
 
     const setLog = new SetLog({
       userId,
@@ -67,13 +123,48 @@ const logSet = async (req, res) => {
 
 const getExerciseHistory = async (req, res) => {
   try {
-    const userId = req.user && req.user.id ? req.user.id : req.user;
+    const userId = req.user?.userId || req.user?.id || req.user;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const { id } = req.params; // exercise id
 
     const history = await SetLog.find({ userId, exercise: id })
-      .sort({ date: 1, setNumber: 1 });
+      .sort({ date: 1, setNumber: 1 })
+      .populate({
+        path: "exercise",
+        select: "name bodyPart",
+        populate: {
+          path: "bodyPart",
+          select: "name"
+        }
+      });
 
-    return res.status(200).json(history);
+    if (!history || history.length === 0) {
+      return res.status(200).json({
+        exerciseName: null,
+        bodyPartName: null,
+        setsCount: 0
+      });
+    }
+
+    const exerciseDoc = history[0].exercise;
+
+    const sets = history.map((set) => ({
+      setNumber: set.setNumber,
+      weightKg: set.weightKg,
+      reps: set.reps,
+      date: set.date
+    }));
+
+    return res.status(200).json({
+      exerciseName: exerciseDoc?.name || null,
+      bodyPartName: exerciseDoc?.bodyPart?.name || null,
+      setsCount: history.length,
+      sets
+    });
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch exercise history", error: error.message });
   }
