@@ -1,0 +1,431 @@
+const User = require("../model/User");
+const WeightLog = require("../model/WeightLog");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const cloudinary = require("cloudinary").v2;
+const nodemailer = require("nodemailer");
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+});
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
+});
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.log("SMTP ERROR:", error);
+  } else {
+    console.log("SMTP CONNECTED!");
+  }
+}); 
+
+const register = async (req, res) => {
+  try {
+    console.log("Entered register controller");
+    const { name, email, password, gender, height, weight } = req.body;
+    console.log("Request body:", req.body);
+    console.log("Request file:", req.file);
+
+    if (!name || !email || !password || !gender || !height || !weight) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+
+    const heightInMeters = Number(height) / 100;
+    const bmi = Number(weight) / (heightInMeters * heightInMeters);
+
+    let imageUrl = null;
+
+    if (req.file && req.file.path) {
+      const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+        folder: "gym-tracker/users",
+      });
+      imageUrl = uploadResult.secure_url;
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      image: imageUrl,
+      gender,
+      height,
+      weight,
+      BMI: bmi,
+    });
+
+    await WeightLog.create({
+      user: user._id,
+      weight,
+      BMI: bmi,
+    });
+
+    return res.status(201).json({
+      message: "User registered successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        gender: user.gender,
+        height: user.height,
+        weight: user.weight,
+        BMI: user.BMI,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ error: "Invalid email or password" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Invalid email or password" });
+    }
+
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET || "default_jwt_secret",
+      { expiresIn: "7d" }
+    );
+
+    return res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        gender: user.gender,
+        height: user.height,
+        weight: user.weight,
+        BMI: user.BMI,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const otp = ("" + Math.floor(100000 + Math.random() * 900000));
+    const expires = new Date(Date.now() + 10 * 60 * 1000);
+
+    user.resetOtp = otp;
+    user.resetOtpExpires = expires;
+    await user.save();
+
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: user.email,
+      subject: "Your password reset OTP",
+      text: `Your OTP for password reset is ${otp}. It is valid for 10 minutes.`,
+    });
+    transporter.verify((err, success) => {
+  if (err) {
+    console.log("SMTP ERROR:", err);
+  } else {
+    console.log("SMTP CONNECTED!");
+  }
+});
+
+
+    return res.status(200).json({ message: "OTP sent to email" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res
+        .status(400)
+        .json({ error: "Email and OTP are required" });
+    }
+
+    const user = await User.findOne({ email, resetOtp: otp });
+    if (!user) {
+      return res.status(400).json({ error: "Invalid OTP" });
+    }
+
+    if (!user.resetOtpExpires || user.resetOtpExpires < new Date()) {
+      return res.status(400).json({ error: "OTP has expired" });
+    }
+
+    return res.status(200).json({ message: "OTP verified successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      return res
+        .status(400)
+        .json({ error: "Email, OTP and new password are required" });
+    }
+
+    const user = await User.findOne({ email, resetOtp: otp });
+    if (!user) {
+      return res.status(400).json({ error: "Invalid OTP" });
+    }
+
+    if (!user.resetOtpExpires || user.resetOtpExpires < new Date()) {
+      return res.status(400).json({ error: "OTP has expired" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+    user.resetOtp = null;
+    user.resetOtpExpires = null;
+    await user.save();
+
+    return res.status(200).json({ message: "Password reset successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const addWeight = async (req, res) => {
+  try {
+    const { weight } = req.body;
+
+    if (!weight) {
+      return res.status(400).json({ error: "Weight is required" });
+    }
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const heightInMeters = Number(user.height) / 100;
+    const bmi = Number(weight) / (heightInMeters * heightInMeters);
+
+    user.weight = weight;
+    user.BMI = bmi;
+    await user.save();
+
+    await WeightLog.create({
+      user: user._id,
+      weight,
+      BMI: bmi,
+    });
+
+    return res.status(201).json({
+      message: "Weight added successfully",
+      weight: user.weight,
+      BMI: Number(bmi.toFixed(2)),
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const getWeightHistory = async (req, res) => {
+  try {
+    const logs = await WeightLog.find({ user: req.user.userId }).sort({ createdAt: 1 });
+
+    if (!logs.length) {
+      return res.status(200).json({ logs: [], trend: null });
+    }
+
+    const first = logs[0];
+    const last = logs[logs.length - 1];
+
+    const trendValue = last.weight - first.weight;
+    let trendDirection = "stable";
+    if (trendValue > 0) trendDirection = "up";
+    if (trendValue < 0) trendDirection = "down";
+
+    const chartData = logs.map((log) => ({
+      date: log.createdAt,
+      weight: log.weight,
+      BMI: Number(log.BMI.toFixed(2)),
+    }));
+
+    return res.status(200).json({
+      logs: chartData,
+      trend: {
+        value: trendValue,
+        direction: trendDirection,
+      },
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const latestWeight = user.weight;
+    const latestBMI = user.BMI;
+
+    return res.status(200).json({
+      name: user.name,
+      email: user.email,
+      height: user.height,
+      image: user.image,
+      weight: latestWeight,
+      BMI: Number(Number(latestBMI).toFixed(2)),
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const editProfile = async (req, res) => {
+  try {
+    const { name, height, gender } = req.body;
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (name) {
+      user.name = name;
+    }
+
+    if (height) {
+      user.height = height;
+    }
+
+    if (gender) {
+      user.gender = gender;
+    }
+
+    if (req.file && req.file.path) {
+      const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+        folder: "gym-tracker/users",
+      });
+      user.image = uploadResult.secure_url;
+    }
+
+    if (user.height && user.weight) {
+      const heightInMeters = Number(user.height) / 100;
+      const bmi = Number(user.weight) / (heightInMeters * heightInMeters);
+      user.BMI = bmi;
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        gender: user.gender,
+        height: user.height,
+        weight: user.weight,
+        BMI: user.BMI,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await WeightLog.deleteMany({ user: userId });
+    await User.findByIdAndDelete(userId);
+
+    return res.status(200).json({ message: "Account deleted successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+module.exports = {
+  register,
+  login,
+  forgotPassword,
+  verifyOtp,
+  resetPassword,
+  addWeight,
+  getWeightHistory,
+  getProfile,
+  editProfile,
+  deleteAccount,
+};
