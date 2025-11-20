@@ -4,6 +4,19 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function () {
+        var key = 'appTheme';
+        var theme = 'light';
+        try {
+          var stored = window.localStorage.getItem(key);
+          if (stored === 'dark' || stored === 'light') {
+            theme = stored;
+          }
+        } catch (e) {}
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
     <title>client</title>
   </head>
   <body>

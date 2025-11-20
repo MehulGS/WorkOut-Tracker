@@ -1,8 +1,8 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import { Footer, Navbar } from "../../component";
-import ScrollToTop from "../../services/ScrollToTop";
 import { useTheme } from "../../context/ThemeContext";
+import { ScrollToTop } from "../../services";
 
 const SystemLayout = () => {
   const { isDark } = useTheme();
@@ -11,13 +11,13 @@ const SystemLayout = () => {
     <div
       className={
         isDark
-          ? "min-h-screen bg-[#030712] text-slate-100"
-          : "min-h-screen bg-[#F4F7FE] text-slate-900"
+          ? "min-h-screen flex flex-col bg-[#030712] text-slate-100"
+          : "min-h-screen flex flex-col bg-[#F4F7FE] text-slate-900"
       }
     >
       <ScrollToTop />
       <Navbar />
-      <main className="pt-16">
+      <main className="flex-1 pt-18">
         <Outlet />
       </main>
       <Footer />

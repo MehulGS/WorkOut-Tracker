@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(AUTH_TOKEN_KEY);
+    const stored = window.sessionStorage.getItem(AUTH_TOKEN_KEY);
     if (stored) {
       setToken(stored);
     }
@@ -17,12 +17,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = (newToken) => {
     setToken(newToken);
-    window.localStorage.setItem(AUTH_TOKEN_KEY, newToken);
+    window.sessionStorage.setItem(AUTH_TOKEN_KEY, newToken);
   };
 
   const logout = () => {
     setToken(null);
-    window.localStorage.removeItem(AUTH_TOKEN_KEY);
+    window.sessionStorage.removeItem(AUTH_TOKEN_KEY);
   };
 
   const value = {

@@ -6,12 +6,21 @@ const ThemeContext = createContext(null);
 const THEME_KEY = "appTheme";
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState(() => {
+    if (typeof document !== "undefined") {
+      const attr = document.documentElement.getAttribute("data-theme");
+      if (attr === "dark" || attr === "light") {
+        return attr;
+      }
+    }
+    return "light";
+  });
 
   useEffect(() => {
     const stored = window.localStorage.getItem(THEME_KEY);
     if (stored === "dark" || stored === "light") {
       setTheme(stored);
+      document.documentElement.setAttribute("data-theme", stored);
     }
   }, []);
 
@@ -19,6 +28,7 @@ export const ThemeProvider = ({ children }) => {
     setTheme((prev) => {
       const next = prev === "dark" ? "light" : "dark";
       window.localStorage.setItem(THEME_KEY, next);
+      document.documentElement.setAttribute("data-theme", next);
       return next;
     });
   };

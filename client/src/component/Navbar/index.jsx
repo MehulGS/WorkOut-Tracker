@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { publicNavbar, appNavbar } from "../../constant/data";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { Logo } from "../../assets";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -63,14 +64,12 @@ const Navbar = () => {
                     }`}
                   >
                     <img
-                      src="/assets/Logo/NBLOGO.webp"
+                      src={Logo}
                       alt="Logo"
-                      className="h-8 sm:h-9 md:h-11 lg:h-12 w-auto"
+                      className="h-16 w-auto"
                       fetchPriority="high"
                       decoding="async"
                       loading="eager"
-                      width="64"
-                      height="64"
                       style={{ contentVisibility: "visible" }}
                     />
                   </div>
@@ -95,8 +94,8 @@ const Navbar = () => {
             </div>
           </Link>
 
-          {/* Desktop/Tablet Navigation (md and up) */}
-          <nav className="hidden md:flex items-center gap-6 lg:gap-8">
+          {/* Desktop Navigation (lg and up) */}
+          <nav className="hidden lg:flex items-center gap-6 lg:gap-8">
             {navItems.map((item) => {
               const active = location.pathname === item.path;
               return (
@@ -150,7 +149,7 @@ const Navbar = () => {
             </button>
 
             {/* Desktop: auth actions */}
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden lg:flex items-center gap-2">
               {!isAuthenticated && (
                 <button
                   type="button"
@@ -212,8 +211,8 @@ const Navbar = () => {
               )}
             </div>
 
-            {/* Mobile: Hamburger (below md) */}
-            <div className="flex md:hidden items-center">
+            {/* Mobile/Tablet: Hamburger (below lg) */}
+            <div className="flex lg:hidden items-center">
               <button
                 className={`p-2 rounded-full border transition-colors duration-200 ${
                   isDark
@@ -234,69 +233,58 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-      {/* Mobile Sidebar Navigation */}
-      {isMenuOpen && (
-        <div className="fixed inset-0 z-60 flex">
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setIsMenuOpen(false)}
-          ></div>
 
-          {/* Sidebar */}
+      {/* Mobile/Tablet Sidebar Menu */}
+      {isMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          {/* Backdrop */}
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setIsMenuOpen(false)}
+          />
+
+          {/* Sidebar panel */}
           <div
-            className={`relative w-64 max-w-full h-full shadow-xl p-6 flex flex-col animate-slideInLeft border-r backdrop-blur-xl ${
+            className={`absolute right-0 top-0 h-dvh w-full shadow-xl border-l flex flex-col py-4 px-4 transition-transform duration-300 ease-out ${
               isDark
-                ? "bg-slate-950/95 border-slate-800"
-                : "bg-white/95 border-slate-200"
+                ? "bg-slate-950 border-slate-800 text-slate-100"
+                : "bg-white border-slate-200 text-slate-900"
             }`}
           >
-            <button
-              className={`absolute top-4 right-4 rounded-full p-1.5 border transition-colors ${
-                isDark
-                  ? "border-slate-700 text-slate-100 hover:bg-slate-800"
-                  : "border-slate-200 text-slate-700 hover:bg-slate-100"
-              }`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <span className="sr-only">Close menu</span>
-              <span className="block h-0.5 w-4 bg-current mb-1 rotate-45 translate-y-0.5 rounded-full"></span>
-              <span className="block h-0.5 w-4 bg-current -rotate-45 -translate-y-0.5 rounded-full"></span>
-            </button>
-            <div className="mb-4 mt-2 flex items-center gap-2 justify-between">
-              <img
-                src="/assets/Logo/NBLOGO.webp"
-                alt="Logo"
-                className="h-8 w-auto"
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-              />
-              {isAuthenticated && (
-                <span
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 text-[11px] font-semibold text-slate-950`}
-                >
-                  GT
-                </span>
-              )}
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-semibold tracking-wide">Menu</span>
+              <button
+                type="button"
+                className={`p-2 rounded-full border text-xs font-medium transition-colors ${
+                  isDark
+                    ? "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
+                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                ✕
+              </button>
             </div>
-            <nav className="flex flex-col space-y-4 mt-6">
+
+            {/* Nav links */}
+            <nav className="flex flex-col gap-2 mb-4">
               {navItems.map((item) => {
                 const active = location.pathname === item.path;
                 return (
                   <Link
                     key={item.name}
                     to={item.path}
-                    className={`rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`rounded-lg px-3 py-2 text-sm font-medium tracking-wide transition-colors ${
                       active
                         ? isDark
-                          ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/40"
-                          : "bg-sky-50 text-sky-700 border border-sky-300"
+                          ? "bg-cyan-500/15 text-cyan-300 border border-cyan-600/60"
+                          : "bg-sky-50 text-sky-700 border border-sky-200"
                         : isDark
-                        ? "text-slate-200 hover:bg-slate-800/80"
-                        : "text-slate-700 hover:bg-slate-100"
+                        ? "text-slate-200 hover:bg-slate-900/70 hover:text-cyan-200"
+                        : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                     }`}
-                    onClick={() => setIsMenuOpen(false)}
                   >
                     {item.name}
                   </Link>
@@ -304,8 +292,29 @@ const Navbar = () => {
               })}
             </nav>
 
-            {/* Mobile auth actions */}
-            <div className="mt-8 space-y-2">
+            <div className="mt-auto flex flex-col gap-3">
+              {/* Theme toggle in sidebar for convenience */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className={`inline-flex items-center justify-between gap-2 rounded-full border px-3 py-1.5 text-[11px] font-medium tracking-wide transition-all duration-300 ${
+                  isDark
+                    ? "border-cyan-500/50 bg-slate-950 text-cyan-100 hover:border-fuchsia-400 hover:text-fuchsia-200"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-white"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <span
+                    className={`h-2 w-2 rounded-full shadow-[0_0_12px_currentColor] ${
+                      isDark ? "bg-cyan-400" : "bg-amber-400"
+                    }`}
+                  />
+                  <span>{isDark ? "Neon" : "Day"}</span>
+                </span>
+                <span className="text-[10px] opacity-80">Toggle theme</span>
+              </button>
+
+              {/* Auth actions */}
               {!isAuthenticated && (
                 <button
                   type="button"
@@ -313,27 +322,40 @@ const Navbar = () => {
                     setIsMenuOpen(false);
                     navigate("/login");
                   }}
-                  className={`w-full rounded-full px-4 py-2 text-xs font-semibold tracking-wide transition-colors ${
-                    isDark
-                      ? "bg-sky-500 text-slate-950 hover:bg-sky-400"
-                      : "bg-sky-600 text-white hover:bg-sky-700"
-                  }`}
+                  className="rounded-full bg-sky-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-sky-700 transition-colors text-center"
                 >
                   Login
                 </button>
               )}
+
               {isAuthenticated && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    logout();
-                    navigate("/", { replace: true });
-                  }}
-                  className="w-full rounded-full px-4 py-2 text-xs font-semibold tracking-wide bg-red-500 text-white hover:bg-red-600 transition-colors"
-                >
-                  Logout
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className={`w-full rounded-full border px-4 py-2 text-xs font-medium text-left ${
+                      isDark
+                        ? "border-slate-600 bg-slate-900 text-slate-100 hover:bg-slate-800"
+                        : "border-slate-200 bg-white text-slate-800 hover:bg-slate-100"
+                    }`}
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      // placeholder for profile route if you add it later
+                    }}
+                  >
+                    Profile
+                  </button>
+                  <button
+                    type="button"
+                    className="w-full rounded-full px-4 py-2 text-xs font-semibold text-red-500 border border-red-200 bg-red-50 hover:bg-red-100/80 transition-colors"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      logout();
+                      navigate("/", { replace: true });
+                    }}
+                  >
+                    Logout
+                  </button>
+                </>
               )}
             </div>
           </div>
