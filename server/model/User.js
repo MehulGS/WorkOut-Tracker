@@ -44,6 +44,11 @@ const userSchema = new mongoose.Schema({
         default: 0,
     },
 
+    gymTiming: {
+        type: String,
+        required: true,
+    },
+
     resetOtp: {
         type: String,
         default: null,

@@ -131,8 +131,14 @@ const getExerciseHistory = async (req, res) => {
 
     const { id } = req.params; // exercise id
 
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+
     const history = await SetLog.find({ userId, exercise: id })
-      .sort({ date: 1, setNumber: 1 })
+      .sort({ date: -1, setNumber: -1 })
+      .skip(skip)
+      .limit(limit)
       .populate({
         path: "exercise",
         select: "name bodyPart",
@@ -152,22 +158,41 @@ const getExerciseHistory = async (req, res) => {
 
     const exerciseDoc = history[0].exercise;
 
-    const sets = history.map((set) => ({
-      setNumber: set.setNumber,
-      weightKg: set.weightKg,
-      reps: set.reps,
-      date: set.date
-    }));
+    const groupedByDate = {};
+
+    history.forEach((set) => {
+      const dateKey = new Date(set.date).toLocaleDateString("en-US", {
+        timeZone: "Asia/Kolkata"
+      });
+
+      if (!groupedByDate[dateKey]) {
+        groupedByDate[dateKey] = [];
+      }
+
+      groupedByDate[dateKey].push({
+        setNumber: set.setNumber,
+        weightKg: set.weightKg,
+        reps: set.reps,
+        date: set.date
+      });
+    });
 
     const totalWeight = history.reduce((sum, set) => sum + set.weightKg, 0);
     const averageWeightKg = history.length > 0 ? totalWeight / history.length : 0;
+
+    const setsByDate = Object.keys(groupedByDate)
+      .sort((a, b) => new Date(b) - new Date(a))
+      .map((date) => ({
+        date,
+        sets: groupedByDate[date]
+      }));
 
     return res.status(200).json({
       exerciseName: exerciseDoc?.name || null,
       bodyPartName: exerciseDoc?.bodyPart?.name || null,
       setsCount: history.length,
       averageWeightKg,
-      sets
+      sets: setsByDate
     });
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch exercise history", error: error.message });

@@ -1,5 +1,6 @@
 const User = require("../model/User");
 const WeightLog = require("../model/WeightLog");
+const Nutrition = require("../model/Nutrition");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
@@ -34,11 +35,11 @@ transporter.verify((error, success) => {
 const register = async (req, res) => {
   try {
     console.log("Entered register controller");
-    const { name, email, password, gender, height, weight } = req.body;
+    const { name, email, password, gender, height, weight, gymTiming } = req.body;
     console.log("Request body:", req.body);
     console.log("Request file:", req.file);
 
-    if (!name || !email || !password || !gender || !height || !weight) {
+    if (!name || !email || !password || !gender || !height || !weight || !gymTiming) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
@@ -71,6 +72,7 @@ const register = async (req, res) => {
       height,
       weight,
       BMI: bmi,
+      gymTiming,
     });
 
     await WeightLog.create({
@@ -90,6 +92,7 @@ const register = async (req, res) => {
         height: user.height,
         weight: user.weight,
         BMI: user.BMI,
+        gymTiming: user.gymTiming,
         createdAt: user.createdAt,
       },
     });
@@ -135,6 +138,7 @@ const login = async (req, res) => {
         height: user.height,
         weight: user.weight,
         BMI: user.BMI,
+        gymTiming: user.gymTiming,
         createdAt: user.createdAt,
       },
     });
@@ -285,14 +289,21 @@ const addWeight = async (req, res) => {
 
 const getWeightHistory = async (req, res) => {
   try {
-    const logs = await WeightLog.find({ user: req.user.userId }).sort({ createdAt: 1 });
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+
+    const logs = await WeightLog.find({ user: req.user.userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     if (!logs.length) {
       return res.status(200).json({ logs: [], trend: null });
     }
 
-    const first = logs[0];
-    const last = logs[logs.length - 1];
+    const first = await WeightLog.findOne({ user: req.user.userId }).sort({ createdAt: 1 });
+    const last = await WeightLog.findOne({ user: req.user.userId }).sort({ createdAt: -1 });
 
     const trendValue = last.weight - first.weight;
     let trendDirection = "stable";
@@ -320,13 +331,80 @@ const getWeightHistory = async (req, res) => {
 
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId);
+    const userId = req.user.userId;
+
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
     const latestWeight = user.weight;
     const latestBMI = user.BMI;
+
+    const nutritions = await Nutrition.find({ userId }).sort({ createdAt: 1 });
+
+    const totalsByDate = {};
+
+    nutritions.forEach((n) => {
+      if (!n.time) return;
+
+      const istDateStr = new Date(n.time).toLocaleDateString("en-US", {
+        timeZone: "Asia/Kolkata",
+      });
+
+      if (!totalsByDate[istDateStr]) {
+        totalsByDate[istDateStr] = 0;
+      }
+
+      totalsByDate[istDateStr] += n.calories || 0;
+    });
+
+    const calorieDates = Object.keys(totalsByDate).sort(
+      (a, b) => new Date(a) - new Date(b)
+    );
+
+    const dailyCalorieIntake = calorieDates.map((date) => ({
+      date,
+      totalCalories: totalsByDate[date],
+    }));
+
+    const totalCaloriesAllDays = calorieDates.reduce(
+      (sum, date) => sum + totalsByDate[date],
+      0
+    );
+
+    const averageDailyCalories =
+      calorieDates.length > 0
+        ? totalCaloriesAllDays / calorieDates.length
+        : 0;
+
+    const weightLogs = await WeightLog.find({ user: userId }).sort({
+      createdAt: 1,
+    });
+
+    let weightTrend = null;
+    let weightChart = [];
+
+    if (weightLogs.length) {
+      const first = weightLogs[0];
+      const last = weightLogs[weightLogs.length - 1];
+
+      const trendValue = last.weight - first.weight;
+      let trendDirection = "stable";
+      if (trendValue > 0) trendDirection = "up";
+      if (trendValue < 0) trendDirection = "down";
+
+      weightTrend = {
+        value: trendValue,
+        direction: trendDirection,
+      };
+
+      weightChart = weightLogs.map((log) => ({
+        date: log.createdAt,
+        weight: log.weight,
+        BMI: Number(log.BMI.toFixed(2)),
+      }));
+    }
 
     return res.status(200).json({
       name: user.name,
@@ -335,6 +413,11 @@ const getProfile = async (req, res) => {
       image: user.image,
       weight: latestWeight,
       BMI: Number(Number(latestBMI).toFixed(2)),
+      gymTiming: user.gymTiming,
+      averageDailyCalories,
+      dailyCalorieIntake,
+      weightTrend,
+      weightChart,
     });
   } catch (err) {
     console.log(err);
@@ -344,7 +427,7 @@ const getProfile = async (req, res) => {
 
 const editProfile = async (req, res) => {
   try {
-    const { name, height, gender } = req.body;
+    const { name, height, gender, gymTiming } = req.body;
 
     const user = await User.findById(req.user.userId);
     if (!user) {
@@ -361,6 +444,10 @@ const editProfile = async (req, res) => {
 
     if (gender) {
       user.gender = gender;
+    }
+
+    if (gymTiming) {
+      user.gymTiming = gymTiming;
     }
 
     if (req.file && req.file.path) {
