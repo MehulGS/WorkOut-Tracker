@@ -159,10 +159,14 @@ const getExerciseHistory = async (req, res) => {
       date: set.date
     }));
 
+    const totalWeight = history.reduce((sum, set) => sum + set.weightKg, 0);
+    const averageWeightKg = history.length > 0 ? totalWeight / history.length : 0;
+
     return res.status(200).json({
       exerciseName: exerciseDoc?.name || null,
       bodyPartName: exerciseDoc?.bodyPart?.name || null,
       setsCount: history.length,
+      averageWeightKg,
       sets
     });
   } catch (error) {
@@ -170,10 +174,74 @@ const getExerciseHistory = async (req, res) => {
   }
 };
 
+const getBodyPartsWithExercises = async (req, res) => {
+  try {
+    const userId = req.user?.userId || req.user?.id || req.user;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const bodyParts = await BodyPart.find({ userId }).sort({ name: 1 });
+    const exercises = await Exercise.find({ userId }).sort({ name: 1 }).populate("bodyPart", "name");
+
+    const exercisesByBodyPart = {};
+
+    exercises.forEach((exercise) => {
+      const bpId = exercise.bodyPart?._id?.toString();
+
+      if (!bpId) return;
+
+      if (!exercisesByBodyPart[bpId]) {
+        exercisesByBodyPart[bpId] = [];
+      }
+
+      exercisesByBodyPart[bpId].push({
+        _id: exercise._id,
+        name: exercise.name
+      });
+    });
+
+    const result = bodyParts.map((bp) => ({
+      _id: bp._id,
+      name: bp.name,
+      exercises: exercisesByBodyPart[bp._id.toString()] || []
+    }));
+
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to fetch body parts and exercises", error: error.message });
+  }
+};
+
+const getExercisesByBodyPart = async (req, res) => {
+  try {
+    const userId = req.user?.userId || req.user?.id || req.user;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { bodyPartId } = req.params;
+
+    if (!bodyPartId) {
+      return res.status(400).json({ message: "'bodyPartId' is required" });
+    }
+
+    const exercises = await Exercise.find({ userId, bodyPart: bodyPartId }).sort({ name: 1 });
+
+    return res.status(200).json(exercises);
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to fetch exercises", error: error.message });
+  }
+};
+
 module.exports = {
   createBodyPart,
   createExercise,
   logSet,
-  getExerciseHistory
+  getExerciseHistory,
+  getBodyPartsWithExercises,
+  getExercisesByBodyPart
 };
 
