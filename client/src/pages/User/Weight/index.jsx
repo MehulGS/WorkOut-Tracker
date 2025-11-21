@@ -22,6 +22,8 @@ const WeightLogs = () => {
   const [error, setError] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -72,6 +74,28 @@ const WeightLogs = () => {
       };
     });
   }, [logs]);
+
+  const sortedLogs = useMemo(() => {
+    if (!logs || logs.length === 0) return [];
+    return logs
+      .slice()
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [logs]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [logs]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil((sortedLogs ? sortedLogs.length : 0) / itemsPerPage)
+  );
+
+  const currentPageLogs = useMemo(() => {
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return sortedLogs.slice(start, end);
+  }, [sortedLogs, page]);
 
   const containerTextColor = isDark ? "text-slate-50" : "text-slate-900";
   const mutedTextColor = isDark ? "text-slate-300" : "text-slate-600";
@@ -226,20 +250,15 @@ const WeightLogs = () => {
             History
           </p>
           <p className={`text-xs ${mutedTextColor}`}>
-            {logs?.length || 0} entries
+            {sortedLogs?.length || 0} entries
           </p>
         </div>
         {loading ? (
           <p className={`text-sm ${mutedTextColor}`}>Loading logs...</p>
-        ) : logs && logs.length ? (
-          <ul className="divide-y divide-slate-200/40">
-            {logs
-              .slice()
-              .sort(
-                (a, b) =>
-                  new Date(b.date).getTime() - new Date(a.date).getTime()
-              )
-              .map((log, idx) => {
+        ) : sortedLogs && sortedLogs.length ? (
+          <>
+            <ul className="divide-y divide-slate-200/40">
+              {currentPageLogs.map((log, idx) => {
                 const date = new Date(log.date);
                 const label = date.toLocaleDateString(undefined, {
                   year: "numeric",
@@ -270,7 +289,40 @@ const WeightLogs = () => {
                   </li>
                 );
               })}
-          </ul>
+            </ul>
+
+            <div className="flex items-center justify-between mt-4 text-xs">
+              <button
+                type="button"
+                onClick={() => page > 1 && setPage(page - 1)}
+                disabled={page === 1}
+                className={`px-3 py-1 rounded border ${
+                  page === 1
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-slate-100 dark:hover:bg-slate-700"
+                }`}
+              >
+                Previous
+              </button>
+
+              <span className={`${mutedTextColor}`}>
+                Page {page} of {totalPages}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => page < totalPages && setPage(page + 1)}
+                disabled={page === totalPages}
+                className={`px-3 py-1 rounded border ${
+                  page === totalPages
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-slate-100 dark:hover:bg-slate-700"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          </>
         ) : (
           <p className={`text-sm ${mutedTextColor}`}>
             No weight logs yet. Add your first entry.

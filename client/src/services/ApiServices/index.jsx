@@ -156,6 +156,24 @@ export const GetDailyNutritionSummaryAPI = async () => {
   }
 };
 
+export const AddNutritionAPI = async ({ foodName, calories, quantity, time, mealType }) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.post(
+      `${API_URL}/nutrition`,
+      { foodName, calories, quantity, time, mealType },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Add nutrition entry failed");
+  }
+};
+
 export const GetExerciseBodyPartsAPI = async () => {
   try {
     const token = sessionStorage.getItem("authToken");

@@ -14,14 +14,18 @@ const WorkoutHistory = () => {
   const [reps, setReps] = useState(0);
   const [saving, setSaving] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [page, setPage] = useState(1);
+  const [currentPageCount, setCurrentPageCount] = useState(0);
+  const pageSize = 10;
 
-  const fetchHistory = useCallback(async () => {
+  const fetchHistory = useCallback(async (pageToLoad = 1) => {
     if (!exerciseId) return;
     try {
       setLoading(true);
       setError(null);
-      const data = await GetExerciseHistoryAPI(exerciseId);
+      const data = await GetExerciseHistoryAPI(exerciseId, pageToLoad, pageSize);
       setHistory(data);
+      setCurrentPageCount(data?.setsCount || 0);
     } catch (err) {
       const message = err?.message || "Failed to load workout history";
       setError(message);
@@ -31,8 +35,8 @@ const WorkoutHistory = () => {
   }, [exerciseId]);
 
   useEffect(() => {
-    fetchHistory();
-  }, [fetchHistory]);
+    fetchHistory(page);
+  }, [fetchHistory, page]);
 
   const handleAddSet = async (e) => {
     e.preventDefault();
@@ -125,27 +129,61 @@ const WorkoutHistory = () => {
       )}
 
       {!loading && !error && setsByDate && setsByDate.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
-          {setsByDate.map((day) => (
-            <div
-              key={day.date}
-              className={`${cardBg} ${cardBorder} border rounded-lg p-4 shadow-sm flex flex-col justify-between`}
-            >
-              <div>
-                <h2 className={`text-lg font-semibold mb-2 ${textPrimary}`}>
-                  {formatDate(day.date)}
-                </h2>
-                <ul className="space-y-1 text-sm">
-                  {Array.isArray(day.sets) && day.sets.map((set) => (
-                    <li key={set.setNumber} className={`${textSecondary}`}>
-                      Set {set.setNumber}: {set.weightKg} kg × {set.reps} reps
-                    </li>
-                  ))}
-                </ul>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+            {setsByDate.map((day) => (
+              <div
+                key={day.date}
+                className={`${cardBg} ${cardBorder} border rounded-lg p-4 shadow-sm flex flex-col justify-between`}
+              >
+                <div>
+                  <h2 className={`text-lg font-semibold mb-2 ${textPrimary}`}>
+                    {formatDate(day.date)}
+                  </h2>
+                  <ul className="space-y-1 text-sm">
+                    {Array.isArray(day.sets) && day.sets.map((set) => (
+                      <li key={set.setNumber} className={`${textSecondary}`}>
+                        Set {set.setNumber}: {set.weightKg} kg × {set.reps} reps
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between mt-4 text-xs">
+            <button
+              type="button"
+              onClick={() => page > 1 && setPage(page - 1)}
+              disabled={page === 1}
+              className={`px-3 py-1 rounded border ${
+                page === 1
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-slate-100 dark:hover:bg-slate-700"
+              }`}
+            >
+              Previous
+            </button>
+
+            <span className={`${textSecondary}`}>
+              Page {page}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => currentPageCount === pageSize && setPage(page + 1)}
+              disabled={currentPageCount !== pageSize}
+              className={`px-3 py-1 rounded border ${
+                currentPageCount !== pageSize
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-slate-100 dark:hover:bg-slate-700"
+              }`}
+            >
+              Next
+            </button>
+          </div>
+        </>
       )}
 
       {showAddModal && (

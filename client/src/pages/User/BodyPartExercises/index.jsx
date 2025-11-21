@@ -15,6 +15,8 @@ const BodyPartExercises = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 6;
 
   const fetchExercises = useCallback(async () => {
     if (!id) return;
@@ -43,6 +45,21 @@ const BodyPartExercises = () => {
     if (selectedExerciseId === "all") return exercises;
     return exercises.filter((ex) => ex._id === selectedExerciseId);
   }, [exercises, selectedExerciseId]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [selectedExerciseId, exercises]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil((filteredExercises ? filteredExercises.length : 0) / itemsPerPage)
+  );
+
+  const paginatedExercises = useMemo(() => {
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return filteredExercises.slice(start, end);
+  }, [filteredExercises, page]);
 
   const textPrimary = isDark ? "text-slate-50" : "text-slate-900";
   const textSecondary = isDark ? "text-slate-300" : "text-slate-600";
@@ -106,29 +123,63 @@ const BodyPartExercises = () => {
       )}
 
       {!loading && !error && filteredExercises.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
-          {filteredExercises.map((ex) => (
-            <div
-              key={ex._id}
-              className={`${cardBg} ${cardBorder} border rounded-lg p-4 shadow-sm flex flex-col justify-between`}
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+            {paginatedExercises.map((ex) => (
+              <div
+                key={ex._id}
+                className={`${cardBg} ${cardBorder} border rounded-lg p-4 shadow-sm flex flex-col justify-between`}
+              >
+                <div>
+                  <h2 className={`text-lg font-semibold mb-1 ${textPrimary}`}>
+                    {ex.name}
+                  </h2>
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/exercise/${ex._id}/history`)}
+                    className="text-xs font-medium text-emerald-600 hover:text-emerald-700 underline underline-offset-2"
+                  >
+                    Workout history
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between mt-4 text-xs">
+            <button
+              type="button"
+              onClick={() => page > 1 && setPage(page - 1)}
+              disabled={page === 1}
+              className={`px-3 py-1 rounded border ${
+                page === 1
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-slate-100 dark:hover:bg-slate-700"
+              }`}
             >
-              <div>
-                <h2 className={`text-lg font-semibold mb-1 ${textPrimary}`}>
-                  {ex.name}
-                </h2>
-              </div>
-              <div className="mt-3 flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={() => navigate(`/exercise/${ex._id}/history`)}
-                  className="text-xs font-medium text-emerald-600 hover:text-emerald-700 underline underline-offset-2"
-                >
-                  Workout history
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+              Previous
+            </button>
+
+            <span className={`${textSecondary}`}>
+              Page {page} of {totalPages}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => page < totalPages && setPage(page + 1)}
+              disabled={page === totalPages}
+              className={`px-3 py-1 rounded border ${
+                page === totalPages
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-slate-100 dark:hover:bg-slate-700"
+              }`}
+            >
+              Next
+            </button>
+          </div>
+        </>
       )}
 
       {showAddModal && (

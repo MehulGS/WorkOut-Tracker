@@ -12,6 +12,8 @@ const Exercise = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 6;
 
   const fetchBodyParts = useCallback(async () => {
     try {
@@ -35,6 +37,21 @@ const Exercise = () => {
     if (selectedBodyPartId === "all") return bodyParts;
     return bodyParts.filter((bp) => bp._id === selectedBodyPartId);
   }, [bodyParts, selectedBodyPartId]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [selectedBodyPartId, bodyParts]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil((filteredBodyParts ? filteredBodyParts.length : 0) / itemsPerPage)
+  );
+
+  const paginatedBodyParts = useMemo(() => {
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return filteredBodyParts.slice(start, end);
+  }, [filteredBodyParts, page]);
 
   const textPrimary = isDark ? "text-slate-50" : "text-slate-900";
   const textSecondary = isDark ? "text-slate-300" : "text-slate-600";
@@ -101,39 +118,73 @@ const Exercise = () => {
       )}
 
       {!loading && !error && filteredBodyParts.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
-          {filteredBodyParts.map((bp) => {
-            const exercises = Array.isArray(bp.exercises) ? bp.exercises : [];
-            return (
-              <Link
-                to={`/exercise/${bp._id}/exercises`}
-                key={bp._id}
-                className="block group"
-              >
-                <div
-                  className={`${cardBg} ${cardBorder} border rounded-lg p-4 shadow-sm flex flex-col justify-between group-hover:border-emerald-500 group-hover:shadow-md transition`}
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+            {paginatedBodyParts.map((bp) => {
+              const exercises = Array.isArray(bp.exercises) ? bp.exercises : [];
+              return (
+                <Link
+                  to={`/exercise/${bp._id}/exercises`}
+                  key={bp._id}
+                  className="block group"
                 >
-                  <div>
-                    <h2 className={`text-lg font-semibold mb-1 ${textPrimary}`}>
-                      {bp.name}
-                    </h2>
-                    <p className={`text-xs ${textSecondary}`}>
-                      Body part / muscle group
-                    </p>
+                  <div
+                    className={`${cardBg} ${cardBorder} border rounded-lg p-4 shadow-sm flex flex-col justify-between group-hover:border-emerald-500 group-hover:shadow-md transition`}
+                  >
+                    <div>
+                      <h2 className={`text-lg font-semibold mb-1 ${textPrimary}`}>
+                        {bp.name}
+                      </h2>
+                      <p className={`text-xs ${textSecondary}`}>
+                        Body part / muscle group
+                      </p>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className={`text-sm font-medium ${textPrimary}`}>
+                        {exercises.length} exercise{exercises.length === 1 ? "" : "s"}
+                      </span>
+                      <span className="text-xs text-emerald-500 group-hover:text-emerald-400">
+                        View exercises →
+                      </span>
+                    </div>
                   </div>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className={`text-sm font-medium ${textPrimary}`}>
-                      {exercises.length} exercise{exercises.length === 1 ? "" : "s"}
-                    </span>
-                    <span className="text-xs text-emerald-500 group-hover:text-emerald-400">
-                      View exercises →
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center justify-between mt-4 text-xs">
+            <button
+              type="button"
+              onClick={() => page > 1 && setPage(page - 1)}
+              disabled={page === 1}
+              className={`px-3 py-1 rounded border ${
+                page === 1
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-slate-100 dark:hover:bg-slate-700"
+              }`}
+            >
+              Previous
+            </button>
+
+            <span className={`${textSecondary}`}>
+              Page {page} of {totalPages}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => page < totalPages && setPage(page + 1)}
+              disabled={page === totalPages}
+              className={`px-3 py-1 rounded border ${
+                page === totalPages
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-slate-100 dark:hover:bg-slate-700"
+              }`}
+            >
+              Next
+            </button>
+          </div>
+        </>
       )}
 
       {showAddModal && (
