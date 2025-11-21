@@ -17,7 +17,7 @@ const SystemLayout = () => {
     >
       <ScrollToTop />
       <Navbar />
-      <main className="flex-1 pt-18">
+      <main className="flex-1 pt-24">
         <Outlet />
       </main>
       <Footer />

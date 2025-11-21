@@ -123,3 +123,35 @@ export const GetWeightLogsAPI = async () => {
     throw error.response ? error.response.data : new Error("Weight logs fetch failed");
   }
 };
+
+export const GetNutritionEntriesAPI = async (page = 1, limit = 10) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.get(`${API_URL}/nutrition`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        page,
+        limit,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Nutrition entries fetch failed");
+  }
+};
+
+export const GetDailyNutritionSummaryAPI = async () => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.get(`${API_URL}/nutrition/summary/daily`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Daily nutrition summary fetch failed");
+  }
+};

@@ -48,10 +48,13 @@ const getNutritions = async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 10;
     const skip = (page - 1) * limit;
 
-    const nutritions = await Nutrition.find({ userId })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    const [nutritions, totalItems] = await Promise.all([
+      Nutrition.find({ userId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Nutrition.countDocuments({ userId })
+    ]);
 
     const formatted = nutritions.map((n) => {
       const timeIST = n.time
@@ -63,13 +66,33 @@ const getNutritions = async (req, res) => {
           })
         : null;
 
+      const createdAtIST = n.createdAt
+        ? new Date(n.createdAt).toLocaleDateString("en-IN", {
+            timeZone: "Asia/Kolkata",
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+          })
+        : null;
+
       return {
         ...n.toObject(),
-        timeIST
+        timeIST,
+        createdAtIST
       };
     });
 
-    return res.status(200).json(formatted);
+    const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+
+    return res.status(200).json({
+      items: formatted,
+      pagination: {
+        page,
+        limit,
+        totalItems,
+        totalPages
+      }
+    });
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch nutrition entries", error: error.message });
   }

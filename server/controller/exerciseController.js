@@ -207,7 +207,7 @@ const getBodyPartsWithExercises = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const bodyParts = await BodyPart.find({ userId }).sort({ name: 1 });
+    const bodyParts = await BodyPart.find({}).sort({ name: 1 });
     const exercises = await Exercise.find({ userId }).sort({ name: 1 }).populate("bodyPart", "name");
 
     const exercisesByBodyPart = {};
