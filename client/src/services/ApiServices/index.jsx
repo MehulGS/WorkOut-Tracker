@@ -25,3 +25,30 @@ export const RegisterAPI = async (formData) => {
     throw error.response ? error.response.data : new Error("Registration failed");
   }
 };
+
+export const ForgotPasswordAPI = async (data) => {
+  try {
+    const response = await axios.post(`${API_URL}/auth/forgot-password`, data);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Request failed");
+  }
+};
+
+export const VerifyOtpAPI = async (data) => {
+  try {
+    const response = await axios.post(`${API_URL}/auth/verify-otp`, data);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Verification failed");
+  }
+};
+
+export const ResetPasswordAPI = async (data) => {
+  try {
+    const response = await axios.post(`${API_URL}/auth/reset-password`, data);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Verification failed");
+  }
+};

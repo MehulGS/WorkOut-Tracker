@@ -399,7 +399,7 @@ const Register = () => {
                 <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                     Already have an account?{' '}
                     <Link
-                        to="/login"
+                        to="/auth/login"
                         className={`font-medium ${isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-sky-600 hover:text-sky-500'}`}
                     >
                         Sign in

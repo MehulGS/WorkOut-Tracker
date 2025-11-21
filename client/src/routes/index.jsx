@@ -4,7 +4,7 @@ import { AuthLayout, SystemLayout } from "../layouts";
 import useDocumentTitle from "../services/TitleServices";
 import { useAuth } from "../context/AuthContext";
 import { Exercise, Landing, Nutrition, WeightLogs } from "../pages/User";
-import { Login, Register } from "../pages/Auth";
+import { Login, Register, ForgetPassword, VerifyOtp, ResetPassword } from "../pages/Auth";
 
 const TitleWrapper = ({ title, children }) => {
 	useDocumentTitle(title);
@@ -41,6 +41,30 @@ const routes = [
 				element: (
 					<TitleWrapper title="Register - Gym Tracker">
 						<Register />
+					</TitleWrapper>
+				),
+			},
+			{
+				path: "forgot-password",
+				element: (
+					<TitleWrapper title="Forgot Password - Gym Tracker">
+						<ForgetPassword />
+					</TitleWrapper>
+				),
+			},
+			{
+				path: "verify-otp",
+				element: (
+					<TitleWrapper title="Verify OTP - Gym Tracker">
+						<VerifyOtp />
+					</TitleWrapper>
+				),
+			},
+			{
+				path: "reset-password",
+				element: (
+					<TitleWrapper title="Reset Password - Gym Tracker">
+						<ResetPassword />
 					</TitleWrapper>
 				),
 			},

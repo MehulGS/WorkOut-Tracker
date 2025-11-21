@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { useTheme } from "../../../context/ThemeContext";
 import { LoginAPI } from "../../../services/ApiServices";
@@ -61,15 +61,29 @@ const Login = () => {
           />
         </div>
         <div className="space-y-1">
-          <label
-            className={
-              isDark
-                ? "block text-xs font-medium text-slate-300"
-                : "block text-xs font-medium text-slate-600"
-            }
-          >
-            Password
-          </label>
+          <div className="flex items-center justify-between">
+            <label
+              className={
+                isDark
+                  ? "text-xs font-medium text-slate-300"
+                  : "text-xs font-medium text-slate-600"
+              }
+            >
+              Password
+            </label>
+
+            <Link
+              to="/auth/forgot-password"
+              className={
+                isDark
+                  ? "text-[11px] text-slate-400 hover:text-cyan-300"
+                  : "text-[11px] text-slate-500 hover:text-sky-600"
+              }
+            >
+              Forget Password?
+            </Link>
+          </div>
+
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
@@ -82,6 +96,7 @@ const Login = () => {
                   : "w-full rounded-lg border border-slate-200 bg-white/80 px-3 py-2 pr-10 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
               }
             />
+
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
@@ -95,6 +110,7 @@ const Login = () => {
             </button>
           </div>
         </div>
+
         {error && (
           <p className="text-xs text-red-500">{error}</p>
         )}
@@ -105,6 +121,17 @@ const Login = () => {
         >
           {loading ? "Logging in..." : "Login"}
         </button>
+        <div className="mt-6 text-center">
+          <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+            Already have an account?{' '}
+            <Link
+              to="/auth/register"
+              className={`font-medium ${isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-sky-600 hover:text-sky-500'}`}
+            >
+              Sign up
+            </Link>
+          </p>
+        </div>
       </form>
     </div>
   );
