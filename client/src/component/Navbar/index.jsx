@@ -4,6 +4,7 @@ import { publicNavbar, appNavbar } from "../../constant/data";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { Logo } from "../../assets";
+import { jwtDecode } from "jwt-decode"
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,6 +14,10 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const token = sessionStorage.getItem("authToken")
+  const decodedToken = jwtDecode(token)
+  const profileImage = decodedToken.profileImage
+  const name = decodedToken.name;
 
   const navItems = isAuthenticated ? appNavbar : publicNavbar;
 
@@ -30,15 +35,14 @@ const Navbar = () => {
 
   return (
     <header
-      className={`fixed -top-1 left-0 w-full z-50 transition-all duration-300 !p-0 backdrop-blur-md border-b ${
-        scrolled
+      className={`fixed -top-1 left-0 w-full z-50 transition-all duration-300 !p-0 backdrop-blur-md border-b ${scrolled
           ? isDark
             ? "bg-slate-950/80 border-slate-800 shadow-[0_10px_40px_rgba(15,23,42,0.9)]"
             : "bg-white/80 border-slate-200 shadow-md"
           : isDark
-          ? "bg-transparent border-transparent"
-          : "bg-transparent border-transparent"
-      }`}
+            ? "bg-transparent border-transparent"
+            : "bg-transparent border-transparent"
+        }`}
     >
       {/* Subtle background glow in dark mode */}
       {isDark && (
@@ -59,9 +63,8 @@ const Navbar = () => {
                 )}
                 <div className="relative rounded-2xl p-[2px] bg-gradient-to-r from-cyan-400 via-sky-500 to-fuchsia-500">
                   <div
-                    className={`rounded-2xl px-2 py-1 ${
-                      isDark ? "bg-slate-950" : "bg-white"
-                    }`}
+                    className={`rounded-2xl px-2 py-1 ${isDark ? "bg-slate-950" : "bg-white"
+                      }`}
                   >
                     <img
                       src={Logo}
@@ -77,16 +80,14 @@ const Navbar = () => {
               </div>
               <div className="hidden sm:flex flex-col leading-tight">
                 <span
-                  className={`text-xs tracking-[0.25em] uppercase ${
-                    isDark ? "text-slate-400" : "text-slate-500"
-                  }`}
+                  className={`text-xs tracking-[0.25em] uppercase ${isDark ? "text-slate-400" : "text-slate-500"
+                    }`}
                 >
                   Gym Tracker
                 </span>
                 <span
-                  className={`text-sm md:text-base font-semibold ${
-                    isDark ? "text-slate-50" : "text-slate-900"
-                  }`}
+                  className={`text-sm md:text-base font-semibold ${isDark ? "text-slate-50" : "text-slate-900"
+                    }`}
                 >
                   Sculpt. Track. Repeat.
                 </span>
@@ -102,27 +103,24 @@ const Navbar = () => {
                 <Link
                   key={item.name}
                   to={item.path}
-                  className={`relative text-sm lg:text-[15px] font-medium tracking-wide transition-all duration-200 ${
-                    active
+                  className={`relative text-sm lg:text-[15px] font-medium tracking-wide transition-all duration-200 ${active
                       ? isDark
                         ? "text-cyan-300"
                         : "text-sky-600"
                       : isDark
-                      ? "text-slate-300"
-                      : "text-slate-700"
-                  }`}
+                        ? "text-slate-300"
+                        : "text-slate-700"
+                    }`}
                 >
                   <span>{item.name}</span>
                   <span
-                    className={`absolute left-0 -bottom-1 h-[2px] rounded-full origin-left scale-x-0 transition-transform duration-200 ${
-                      active
+                    className={`absolute left-0 -bottom-1 h-[2px] rounded-full origin-left scale-x-0 transition-transform duration-200 ${active
                         ? "scale-x-100"
                         : "group-hover:scale-x-100"
-                    } ${
-                      isDark
+                      } ${isDark
                         ? "bg-gradient-to-r from-cyan-400 to-fuchsia-500 shadow-[0_0_15px_rgba(6,182,212,0.9)]"
                         : "bg-gradient-to-r from-sky-500 to-indigo-500"
-                    }`}
+                      }`}
                   />
                 </Link>
               );
@@ -134,16 +132,14 @@ const Navbar = () => {
             <button
               type="button"
               onClick={toggleTheme}
-              className={`relative inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-medium tracking-wide transition-all duration-300 backdrop-blur-sm ${
-                isDark
+              className={`relative inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-medium tracking-wide transition-all duration-300 backdrop-blur-sm ${isDark
                   ? "border-cyan-500/50 bg-slate-950/70 text-cyan-100 hover:border-fuchsia-400 hover:text-fuchsia-200 shadow-[0_0_18px_rgba(8,47,73,1)]"
                   : "border-slate-200 bg-white/80 text-slate-700 hover:border-slate-300 hover:bg-white shadow-sm"
-              }`}
+                }`}
             >
               <span
-                className={`h-2 w-2 rounded-full shadow-[0_0_12px_currentColor] ${
-                  isDark ? "bg-cyan-400" : "bg-amber-400"
-                }`}
+                className={`h-2 w-2 rounded-full shadow-[0_0_12px_currentColor] ${isDark ? "bg-cyan-400" : "bg-amber-400"
+                  }`}
               />
               <span>{isDark ? "Neon" : "Day"}</span>
             </button>
@@ -165,31 +161,42 @@ const Navbar = () => {
                   <button
                     type="button"
                     onClick={() => setUserMenuOpen((prev) => !prev)}
-                    className={`flex items-center gap-2 rounded-full border px-2 py-1.5 text-xs font-medium transition-colors ${
-                      isDark
+                    className={`flex items-center gap-2 rounded-full border px-2 py-1.5 text-xs font-medium transition-colors ${isDark
                         ? "border-slate-600 bg-slate-900/80 text-slate-100 hover:bg-slate-800"
                         : "border-slate-200 bg-white/80 text-slate-800 hover:bg-slate-100"
-                    }`}
+                      }`}
                   >
-                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 text-[11px] font-semibold text-slate-950">
-                      GT
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 text-[11px] font-semibold text-slate-950 overflow-hidden">
+                      {profileImage ? (
+                        <img
+                          src={
+                            typeof profileImage === "string"
+                              ? profileImage
+                              : URL.createObjectURL(profileImage)
+                          }
+                          alt="Profile"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        name?.charAt(0)?.toUpperCase()
+                      )}
                     </span>
+
                     <span className="hidden lg:inline">Profile</span>
                   </button>
                   {userMenuOpen && (
                     <div
-                      className={`absolute right-0 mt-2 w-40 rounded-xl border shadow-lg text-xs overflow-hidden z-50 ${
-                        isDark
+                      className={`absolute right-0 mt-2 w-40 rounded-xl border shadow-lg text-xs overflow-hidden z-50 ${isDark
                           ? "bg-slate-900 border-slate-700 text-slate-100"
                           : "bg-white border-slate-200 text-slate-800"
-                      }`}
+                        }`}
                     >
                       <button
                         type="button"
-                        className="w-full px-3 py-2 text-left hover:bg-slate-800/70 md:hover:bg-slate-100"
+                        className="w-full px-3 py-2 text-left hover:bg-slate-800/70 md:hover:bg-slate-100/80"
                         onClick={() => {
                           setUserMenuOpen(false);
-                          // placeholder for profile route if you add it later
+                          navigate("/profile");
                         }}
                       >
                         Profile
@@ -214,11 +221,10 @@ const Navbar = () => {
             {/* Mobile/Tablet: Hamburger (below lg) */}
             <div className="flex lg:hidden items-center">
               <button
-                className={`p-2 rounded-full border transition-colors duration-200 ${
-                  isDark
+                className={`p-2 rounded-full border transition-colors duration-200 ${isDark
                     ? "border-slate-700 text-slate-100 bg-slate-900/80"
                     : "border-slate-200 text-slate-700 bg-white/80"
-                }`}
+                  }`}
                 onClick={() => {
                   setIsMenuOpen(true);
                   setUserMenuOpen(false);
@@ -246,21 +252,19 @@ const Navbar = () => {
 
           {/* Sidebar panel */}
           <div
-            className={`absolute right-0 top-0 h-dvh w-full shadow-xl border-l flex flex-col py-4 px-4 transition-transform duration-300 ease-out ${
-              isDark
+            className={`absolute right-0 top-0 h-dvh w-full shadow-xl border-l flex flex-col py-4 px-4 transition-transform duration-300 ease-out ${isDark
                 ? "bg-slate-950 border-slate-800 text-slate-100"
                 : "bg-white border-slate-200 text-slate-900"
-            }`}
+              }`}
           >
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-semibold tracking-wide">Menu</span>
               <button
                 type="button"
-                className={`p-2 rounded-full border text-xs font-medium transition-colors ${
-                  isDark
+                className={`p-2 rounded-full border text-xs font-medium transition-colors ${isDark
                     ? "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
                     : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
-                }`}
+                  }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 ✕
@@ -276,15 +280,14 @@ const Navbar = () => {
                     key={item.name}
                     to={item.path}
                     onClick={() => setIsMenuOpen(false)}
-                    className={`rounded-lg px-3 py-2 text-sm font-medium tracking-wide transition-colors ${
-                      active
+                    className={`rounded-lg px-3 py-2 text-sm font-medium tracking-wide transition-colors ${active
                         ? isDark
                           ? "bg-cyan-500/15 text-cyan-300 border border-cyan-600/60"
                           : "bg-sky-50 text-sky-700 border border-sky-200"
                         : isDark
-                        ? "text-slate-200 hover:bg-slate-900/70 hover:text-cyan-200"
-                        : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-                    }`}
+                          ? "text-slate-200 hover:bg-slate-900/70 hover:text-cyan-200"
+                          : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                      }`}
                   >
                     {item.name}
                   </Link>
@@ -297,17 +300,15 @@ const Navbar = () => {
               <button
                 type="button"
                 onClick={toggleTheme}
-                className={`inline-flex items-center justify-between gap-2 rounded-full border px-3 py-1.5 text-[11px] font-medium tracking-wide transition-all duration-300 ${
-                  isDark
+                className={`inline-flex items-center justify-between gap-2 rounded-full border px-3 py-1.5 text-[11px] font-medium tracking-wide transition-all duration-300 ${isDark
                     ? "border-cyan-500/50 bg-slate-950 text-cyan-100 hover:border-fuchsia-400 hover:text-fuchsia-200"
                     : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-white"
-                }`}
+                  }`}
               >
                 <span className="flex items-center gap-2">
                   <span
-                    className={`h-2 w-2 rounded-full shadow-[0_0_12px_currentColor] ${
-                      isDark ? "bg-cyan-400" : "bg-amber-400"
-                    }`}
+                    className={`h-2 w-2 rounded-full shadow-[0_0_12px_currentColor] ${isDark ? "bg-cyan-400" : "bg-amber-400"
+                      }`}
                   />
                   <span>{isDark ? "Neon" : "Day"}</span>
                 </span>
@@ -332,14 +333,13 @@ const Navbar = () => {
                 <>
                   <button
                     type="button"
-                    className={`w-full rounded-full border px-4 py-2 text-xs font-medium text-left ${
-                      isDark
+                    className={`w-full rounded-full border px-4 py-2 text-xs font-medium text-left ${isDark
                         ? "border-slate-600 bg-slate-900 text-slate-100 hover:bg-slate-800"
                         : "border-slate-200 bg-white text-slate-800 hover:bg-slate-100"
-                    }`}
+                      }`}
                     onClick={() => {
                       setIsMenuOpen(false);
-                      // placeholder for profile route if you add it later
+                      navigate("/profile");
                     }}
                   >
                     Profile

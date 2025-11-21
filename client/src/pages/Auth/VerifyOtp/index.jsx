@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../../context/ThemeContext';
 import { VerifyOtpAPI } from '../../../services/ApiServices';
@@ -7,6 +7,7 @@ const VerifyOtp = () => {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { isDark } = useTheme();
+	const inputRefs = useRef([]);
 	const initialEmail = location?.state?.email || '';
 	const [email, setEmail] = useState(initialEmail);
 	const [otp, setOtp] = useState('');
@@ -37,7 +38,16 @@ const VerifyOtp = () => {
 		const digit = value.replace(/[^0-9]/g, '').slice(-1);
 		let next = otp.split('');
 		next[index] = digit;
-		setOtp(next.join(''));
+		const newOtp = next.join('');
+		setOtp(newOtp);
+
+		if (digit && index < 5) {
+			// Move to next input when a digit is entered
+			inputRefs.current[index + 1]?.focus();
+		} else if (!digit && index > 0) {
+			// If clearing the input, move back to previous
+			inputRefs.current[index - 1]?.focus();
+		}
 	};
 
 	const otpBoxes = Array.from({ length: 6 }, (_, idx) => otp[idx] || '');
@@ -85,6 +95,7 @@ const VerifyOtp = () => {
 								type="text"
 								inputMode="numeric"
 								maxLength={1}
+								ref={(el) => (inputRefs.current[idx] = el)}
 								value={val}
 								onChange={(e) => handleOtpChange(idx, e.target.value)}
 								className={

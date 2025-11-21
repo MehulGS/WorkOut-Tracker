@@ -124,7 +124,7 @@ const login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user._id },
+      { userId: user._id,profileImage:user.image,name:user.name },
       process.env.JWT_SECRET || "default_jwt_secret",
       { expiresIn: "7d" }
     );
@@ -412,6 +412,9 @@ const getProfile = async (req, res) => {
     return res.status(200).json({
       name: user.name,
       email: user.email,
+      dateOfBirth: user.dateOfBirth,
+      age: user.age,
+      gender:user.gender,
       height: user.height,
       image: user.image,
       weight: latestWeight,

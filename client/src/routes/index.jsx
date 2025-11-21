@@ -3,7 +3,7 @@ import { NotFoundPage } from "../component";
 import { AuthLayout, SystemLayout } from "../layouts";
 import useDocumentTitle from "../services/TitleServices";
 import { useAuth } from "../context/AuthContext";
-import { Exercise, Landing, Nutrition, WeightLogs } from "../pages/User";
+import { Exercise, Landing, Nutrition, WeightLogs, Profile } from "../pages/User";
 import { Login, Register, ForgetPassword, VerifyOtp, ResetPassword } from "../pages/Auth";
 
 const TitleWrapper = ({ title, children }) => {
@@ -105,6 +105,18 @@ const routes = [
 						element={
 							<TitleWrapper title="Weight Logs - Gym Tracker">
 								<WeightLogs />
+							</TitleWrapper>
+						}
+					/>
+				),
+			},
+			{
+				path: "profile",
+				element: (
+					<ProtectedRoute
+						element={
+							<TitleWrapper title="Profile - Gym Tracker">
+								<Profile />
 							</TitleWrapper>
 						}
 					/>
