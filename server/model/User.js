@@ -29,6 +29,16 @@ const userSchema = new mongoose.Schema({
         required: true,
     },
 
+    dateOfBirth: {
+        type: Date,
+        required: true,
+    },
+
+    age: {
+        type: Number,
+        required: true,
+    },
+
     height: {
         type: Number,   // in centimeters
         required: true,
@@ -45,7 +55,7 @@ const userSchema = new mongoose.Schema({
     },
 
     gymTiming: {
-        type: String,
+        type: String,   // Will store time in 'HH:MM AM/PM' format
         required: true,
     },
 

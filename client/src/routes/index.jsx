@@ -4,7 +4,7 @@ import { AuthLayout, SystemLayout } from "../layouts";
 import useDocumentTitle from "../services/TitleServices";
 import { useAuth } from "../context/AuthContext";
 import { Exercise, Landing, Nutrition, WeightLogs } from "../pages/User";
-import { Login } from "../pages/Auth";
+import { Login, Register } from "../pages/Auth";
 
 const TitleWrapper = ({ title, children }) => {
 	useDocumentTitle(title);
@@ -33,6 +33,14 @@ const routes = [
 				element: (
 					<TitleWrapper title="Login - Gym Tracker">
 						<Login />
+					</TitleWrapper>
+				),
+			},
+			{
+				path: "register",
+				element: (
+					<TitleWrapper title="Register - Gym Tracker">
+						<Register />
 					</TitleWrapper>
 				),
 			},

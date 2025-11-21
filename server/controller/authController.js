@@ -34,12 +34,9 @@ transporter.verify((error, success) => {
 
 const register = async (req, res) => {
   try {
-    console.log("Entered register controller");
-    const { name, email, password, gender, height, weight, gymTiming } = req.body;
-    console.log("Request body:", req.body);
-    console.log("Request file:", req.file);
+    const { name, email, password, gender, dateOfBirth, age, height, weight, gymTiming } = req.body;
 
-    if (!name || !email || !password || !gender || !height || !weight || !gymTiming) {
+    if (!name || !email || !password || !gender || !dateOfBirth || !age || !height || !weight || !gymTiming) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
@@ -48,8 +45,10 @@ const register = async (req, res) => {
       return res.status(400).json({ error: "User already exists" });
     }
 
+    // Convert height from cm to meters for BMI calculation
     const heightInMeters = Number(height) / 100;
-    const bmi = Number(weight) / (heightInMeters * heightInMeters);
+    // Calculate BMI with 1 decimal place precision
+    const bmi = (Number(weight) / (heightInMeters * heightInMeters)).toFixed(1);
 
     let imageUrl = null;
 
@@ -69,16 +68,18 @@ const register = async (req, res) => {
       password: hashedPassword,
       image: imageUrl,
       gender,
+      dateOfBirth: new Date(dateOfBirth),
+      age: parseInt(age, 10),
       height,
-      weight,
-      BMI: bmi,
+      weight: parseFloat(weight),
+      BMI: parseFloat(bmi),
       gymTiming,
     });
 
     await WeightLog.create({
       user: user._id,
-      weight,
-      BMI: bmi,
+      weight: parseFloat(weight),
+      BMI: parseFloat(bmi),
     });
 
     return res.status(201).json({
@@ -90,10 +91,12 @@ const register = async (req, res) => {
         image: user.image,
         gender: user.gender,
         height: user.height,
+        age:user.age,
         weight: user.weight,
         BMI: user.BMI,
         gymTiming: user.gymTiming,
         createdAt: user.createdAt,
+        dateOfBirth:user.dateOfBirth
       },
     });
   } catch (err) {
@@ -272,8 +275,8 @@ const addWeight = async (req, res) => {
 
     await WeightLog.create({
       user: user._id,
-      weight,
-      BMI: bmi,
+      weight: parseFloat(weight),
+      BMI: parseFloat(bmi),
     });
 
     return res.status(201).json({
