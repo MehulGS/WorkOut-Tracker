@@ -219,3 +219,39 @@ export const GetBodyPartExercisesAPI = async (id) => {
     throw error.response ? error.response.data : new Error("Body part exercises fetch failed");
   }
 };
+
+export const GetExerciseHistoryAPI = async (exerciseId, page = 1, limit = 10) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.get(`${API_URL}/exercise/${exerciseId}/history`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        page,
+        limit,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Exercise history fetch failed");
+  }
+};
+
+export const LogExerciseSetAPI = async ({ exerciseId, weightKg, reps }) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.post(
+      `${API_URL}/exercise/set`,
+      { exerciseId, weightKg, reps },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Log exercise set failed");
+  }
+};

@@ -4,6 +4,7 @@ import WeightLogs from "./Weight";
 import Nutrition from "./Nutritions";
 import Profile from "./Profile";
 import BodyPartExercises from "./BodyPartExercises";
+import WorkoutHistory from "./WorkoutHistory";
 
 export {
     Landing,
@@ -11,5 +12,6 @@ export {
     WeightLogs,
     Nutrition,
     Profile,
-    BodyPartExercises
+    BodyPartExercises,
+    WorkoutHistory
 }

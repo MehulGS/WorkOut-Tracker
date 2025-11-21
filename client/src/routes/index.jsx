@@ -3,7 +3,7 @@ import { NotFoundPage } from "../component";
 import { AuthLayout, SystemLayout } from "../layouts";
 import useDocumentTitle from "../services/TitleServices";
 import { useAuth } from "../context/AuthContext";
-import { Exercise, Landing, Nutrition, WeightLogs, Profile, BodyPartExercises } from "../pages/User";
+import { Exercise, Landing, Nutrition, WeightLogs, Profile, BodyPartExercises, WorkoutHistory } from "../pages/User";
 import { Login, Register, ForgetPassword, VerifyOtp, ResetPassword } from "../pages/Auth";
 
 const TitleWrapper = ({ title, children }) => {
@@ -81,6 +81,18 @@ const routes = [
 						element={
 							<TitleWrapper title="Exercise Detail - Gym Tracker">
 								<Exercise />
+							</TitleWrapper>
+						}
+					/>
+				),
+			},
+			{
+				path: "exercise/:exerciseId/history",
+				element: (
+					<ProtectedRoute
+						element={
+							<TitleWrapper title="Workout History - Gym Tracker">
+								<WorkoutHistory />
 							</TitleWrapper>
 						}
 					/>

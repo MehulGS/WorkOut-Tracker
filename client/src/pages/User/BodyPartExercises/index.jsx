@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "../../../context/ThemeContext";
 import { GetBodyPartExercisesAPI } from "../../../services/ApiServices";
 import { AddExerciseModal } from "../../../component";
@@ -7,6 +7,7 @@ import { AddExerciseModal } from "../../../component";
 const BodyPartExercises = () => {
   const { isDark } = useTheme();
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [exercises, setExercises] = useState([]);
   const [bodyPartName, setBodyPartName] = useState("");
@@ -115,6 +116,15 @@ const BodyPartExercises = () => {
                 <h2 className={`text-lg font-semibold mb-1 ${textPrimary}`}>
                   {ex.name}
                 </h2>
+              </div>
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/exercise/${ex._id}/history`)}
+                  className="text-xs font-medium text-emerald-600 hover:text-emerald-700 underline underline-offset-2"
+                >
+                  Workout history
+                </button>
               </div>
             </div>
           ))}
