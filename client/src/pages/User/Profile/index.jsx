@@ -38,14 +38,20 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
-  const weightData = (profile?.weightChart || []).map((item) => ({
-    date: new Date(item.date).toLocaleDateString(undefined, {
-      day: "2-digit",
-      month: "short",
-    }),
-    weight: item.weight,
-    BMI: item.BMI,
-  }));
+  const weightData = (profile?.weightChart || []).map((item) => {
+    const dateObj = new Date(item.date);
+    return {
+      date: dateObj,
+      label: dateObj.toLocaleString(undefined, {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      weight: item.weight,
+      BMI: item.BMI,
+    };
+  });
 
   const directionLabel =
     profile?.weightTrend?.direction === "up"
@@ -311,7 +317,7 @@ const Profile = () => {
                           stroke={isDark ? "#1e293b" : "#e2e8f0"}
                         />
                         <XAxis
-                          dataKey="date"
+                          dataKey="label"
                           tick={{ fontSize: 11, fill: isDark ? "#94a3b8" : "#64748b" }}
                           tickLine={false}
                           axisLine={false}

@@ -95,3 +95,31 @@ export const DeleteAccountAPI = async () => {
     throw error.response ? error.response.data : new Error("Account delete failed");
   }
 };
+
+export const AddWeightAPI = async (data) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.post(`${API_URL}/auth/weight`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Weight update failed");
+  }
+};
+
+export const GetWeightLogsAPI = async () => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.get(`${API_URL}/auth/weight-log`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Weight logs fetch failed");
+  }
+};
