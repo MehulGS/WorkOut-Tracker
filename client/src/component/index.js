@@ -4,6 +4,8 @@ import Footer from "./Footer";
 import EditProfileForm from "./EditProfileForm";
 import DeleteAccountModal from "./DeleteAcountModal";
 import AddWeightModal from "./AddWeightForm";
+import AddBodyPartModal from "./AddBodyPartModal";
+import AddExerciseModal from "./AddExerciseModal";
 
 export {
   NotFoundPage,
@@ -11,5 +13,7 @@ export {
   Footer,
   EditProfileForm,
   DeleteAccountModal,
-  AddWeightModal
+  AddWeightModal,
+  AddBodyPartModal,
+  AddExerciseModal
 };

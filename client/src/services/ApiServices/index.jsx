@@ -155,3 +155,67 @@ export const GetDailyNutritionSummaryAPI = async () => {
     throw error.response ? error.response.data : new Error("Daily nutrition summary fetch failed");
   }
 };
+
+export const GetExerciseBodyPartsAPI = async () => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.get(`${API_URL}/exercise/body-parts/all`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Exercise body parts fetch failed");
+  }
+};
+
+export const AddExerciseBodyPartAPI = async ({ name }) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.post(
+      `${API_URL}/exercise/body-part`,
+      { name },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Add exercise body part failed");
+  }
+};
+
+export const AddExerciseAPI = async ({ bodyPartId, name }) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.post(
+      `${API_URL}/exercise/`,
+      { bodyPartId, name },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Add exercise failed");
+  }
+};
+
+export const GetBodyPartExercisesAPI = async (id) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.get(`${API_URL}/exercise/body-part/${id}/exercises`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Body part exercises fetch failed");
+  }
+};
