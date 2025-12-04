@@ -6,6 +6,8 @@ import DeleteAccountModal from "./DeleteAcountModal";
 import AddWeightModal from "./AddWeightForm";
 import AddBodyPartModal from "./AddBodyPartModal";
 import AddExerciseModal from "./AddExerciseModal";
+import AddBodyPartGroupModal from "./AddBodyPartGroupModal";
+import InviteMemberModal from "./InviteMemberModal";
 
 export {
   NotFoundPage,
@@ -15,5 +17,7 @@ export {
   DeleteAccountModal,
   AddWeightModal,
   AddBodyPartModal,
-  AddExerciseModal
+  AddExerciseModal,
+  AddBodyPartGroupModal,
+  InviteMemberModal
 };

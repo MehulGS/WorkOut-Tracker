@@ -19,6 +19,10 @@ export const appNavbar = [
         path: "/exercise",
     },
     {
+        name: "Group Exercise",
+        path: "/group-exercise",
+    },
+    {
         name: "Nutrition Tracker",
         path: "/nutrition",
     },

@@ -1,4 +1,5 @@
 const User = require("../model/User");
+const GymRoom = require("../model/GymRoom");
 const WeightLog = require("../model/WeightLog");
 const Nutrition = require("../model/Nutrition");
 const bcrypt = require("bcryptjs");
@@ -75,6 +76,24 @@ const register = async (req, res) => {
       BMI: parseFloat(bmi),
       gymTiming,
     });
+
+    const gymRoom = await GymRoom.findOne({ pendingInvites: email.toLowerCase() });
+
+    if (gymRoom) {
+      const isAlreadyMember = gymRoom.members.some(
+        (m) => m.toString() === user._id.toString()
+      );
+
+      if (!isAlreadyMember) {
+        gymRoom.members.push(user._id);
+      }
+
+      gymRoom.pendingInvites = gymRoom.pendingInvites.filter(
+        (invitedEmail) => invitedEmail.toLowerCase() !== email.toLowerCase()
+      );
+
+      await gymRoom.save();
+    }
 
     await WeightLog.create({
       user: user._id,

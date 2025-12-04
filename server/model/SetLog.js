@@ -24,6 +24,11 @@ const setLogSchema = new mongoose.Schema(
       type: Number,
       required: true
     },
+    gymRoom: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "GymRoom",
+      required: false,
+    },
     date: {
       type: Date,
       default: Date.now

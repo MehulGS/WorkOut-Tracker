@@ -241,6 +241,7 @@ export const GetBodyPartExercisesAPI = async (id) => {
 export const GetExerciseHistoryAPI = async (exerciseId, page = 1, limit = 10) => {
   try {
     const token = sessionStorage.getItem("authToken");
+
     const response = await axios.get(`${API_URL}/exercise/${exerciseId}/history`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -253,6 +254,56 @@ export const GetExerciseHistoryAPI = async (exerciseId, page = 1, limit = 10) =>
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error("Exercise history fetch failed");
+  }
+};
+
+export const GetGroupsAPI = async () => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.get(`${API_URL}/gymmate/groups`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Groups fetch failed");
+  }
+};
+
+export const CreateGroupAPI = async ({ name }) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.post(
+      `${API_URL}/gymmate/groups`,
+      { name },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Create group failed");
+  }
+};
+
+export const InviteMembersToGroupAPI = async (roomId, { email, emails, name }) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.post(
+      `${API_URL}/gymmate/groups/${roomId}/invite`,
+      { email, emails, name },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Invite members failed");
   }
 };
 
@@ -271,5 +322,72 @@ export const LogExerciseSetAPI = async ({ exerciseId, weightKg, reps }) => {
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error("Log exercise set failed");
+  }
+};
+
+export const GetUserDetailsAPI = async (id) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.get(`${API_URL}/gymmate/user/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("User details fetch failed");
+  }
+};
+
+export const RemoveMemberFromGroupAPI = async ({ roomId, memberId }) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+
+    const response = await axios.delete(
+      `${API_URL}/gymmate/groups/${roomId}/member/${memberId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Remove member failed");
+  }
+};
+
+export const GetGroupBodyPartsWithExercisesAPI = async (roomId) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.get(
+      `${API_URL}/gymmate/groups/${roomId}/body-parts`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Group body parts fetch failed");
+  }
+};
+
+export const CreateGroupBodyPartAPI = async (roomId, { days, name }) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.post(
+      `${API_URL}/gymmate/groups/${roomId}/body-part`,
+      { days, name },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Create group body part failed");
   }
 };

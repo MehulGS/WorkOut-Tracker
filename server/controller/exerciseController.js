@@ -14,15 +14,25 @@ const createBodyPart = async (req, res) => {
       return res.status(400).json({ message: "Request body is required" });
     }
 
-    const { name } = req.body;
+    const { name, day } = req.body;
 
     if (!name || typeof name !== "string") {
       return res.status(400).json({ message: "'name' is required" });
     }
 
+    if (!day || typeof day !== "string") {
+      return res.status(400).json({ message: "'day' is required and must be a string" });
+    }
+
+    const trimmedDay = day.trim();
+    if (!trimmedDay) {
+      return res.status(400).json({ message: "'day' cannot be empty" });
+    }
+
     const bodyPart = new BodyPart({
       userId,
-      name
+      name,
+      days: trimmedDay,
     });
 
     await bodyPart.save();
@@ -94,6 +104,7 @@ const logSet = async (req, res) => {
     const todaySets = await SetLog.find({
       userId,
       exercise: exerciseId,
+      gymRoom: { $exists: false },
       date: { $gte: startOfDay, $lt: endOfDay }
     }).sort({ setNumber: 1 });
 
@@ -135,7 +146,7 @@ const getExerciseHistory = async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 10;
     const skip = (page - 1) * limit;
 
-    const history = await SetLog.find({ userId, exercise: id })
+    const history = await SetLog.find({ userId, exercise: id, gymRoom: { $exists: false } })
       .sort({ date: -1, setNumber: -1 })
       .skip(skip)
       .limit(limit)
@@ -207,8 +218,10 @@ const getBodyPartsWithExercises = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const bodyParts = await BodyPart.find({userId}).sort({ name: 1 });
-    const exercises = await Exercise.find({ userId }).sort({ name: 1 }).populate("bodyPart", "name");
+    const bodyParts = await BodyPart.find({ userId, gymRoom: { $exists: false } }).sort({ name: 1 });
+    const exercises = await Exercise.find({ userId, gymRoom: { $exists: false } })
+      .sort({ name: 1 })
+      .populate("bodyPart", "name");
 
     const exercisesByBodyPart = {};
 
@@ -253,7 +266,8 @@ const getExercisesByBodyPart = async (req, res) => {
       return res.status(400).json({ message: "'bodyPartId' is required" });
     }
 
-    const exercises = await Exercise.find({ userId, bodyPart: bodyPartId }).sort({ name: 1 });
+    const exercises = await Exercise.find({ userId, bodyPart: bodyPartId, gymRoom: { $exists: false } })
+      .sort({ name: 1 });
 
     return res.status(200).json(exercises);
   } catch (error) {

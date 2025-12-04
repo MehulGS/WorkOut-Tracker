@@ -5,6 +5,11 @@ import Nutrition from "./Nutritions";
 import Profile from "./Profile";
 import BodyPartExercises from "./BodyPartExercises";
 import WorkoutHistory from "./WorkoutHistory";
+import GroupExercise from "./GroupExercise";
+import GroupDetail from "./GroupDetail";
+import MemberDetail from "./MemberDetail";
+import GroupExerciseDetail from "./GroupExerciseDetail";
+import GroupBodyPartDetail from "./GroupBodyPartDetail";
 
 export {
     Landing,
@@ -13,5 +18,10 @@ export {
     Nutrition,
     Profile,
     BodyPartExercises,
-    WorkoutHistory
+    WorkoutHistory,
+    GroupExercise,
+    GroupDetail,
+    MemberDetail,
+    GroupExerciseDetail,
+    GroupBodyPartDetail
 }

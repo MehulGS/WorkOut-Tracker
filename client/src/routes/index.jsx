@@ -3,7 +3,7 @@ import { NotFoundPage } from "../component";
 import { AuthLayout, SystemLayout } from "../layouts";
 import useDocumentTitle from "../services/TitleServices";
 import { useAuth } from "../context/AuthContext";
-import { Exercise, Landing, Nutrition, WeightLogs, Profile, BodyPartExercises, WorkoutHistory } from "../pages/User";
+import { Exercise, Landing, Nutrition, WeightLogs, Profile, BodyPartExercises, WorkoutHistory, GroupExercise, GroupDetail, MemberDetail, GroupExerciseDetail, GroupBodyPartDetail } from "../pages/User";
 import { Login, Register, ForgetPassword, VerifyOtp, ResetPassword } from "../pages/Auth";
 
 const TitleWrapper = ({ title, children }) => {
@@ -87,6 +87,30 @@ const routes = [
 				),
 			},
 			{
+				path: "/group-exercise/:groupId/body-part/:bodyPartId",
+				element: (
+					<ProtectedRoute
+						element={
+							<TitleWrapper title="Group Body Part Detail - Gym Tracker">
+								<GroupBodyPartDetail />
+							</TitleWrapper>
+						}
+					/>
+				),
+			},
+			{
+				path: "/group-exercise/:groupId/exercise/:exerciseId",
+				element: (
+					<ProtectedRoute
+						element={
+							<TitleWrapper title="Group Exercise Detail - Gym Tracker">
+								<GroupExerciseDetail />
+							</TitleWrapper>
+						}
+					/>
+				),
+			},
+			{
 				path: "exercise/:exerciseId/history",
 				element: (
 					<ProtectedRoute
@@ -105,6 +129,42 @@ const routes = [
 						element={
 							<TitleWrapper title="Body Part Exercises - Gym Tracker">
 								<BodyPartExercises />
+							</TitleWrapper>
+						}
+					/>
+				),
+			},
+			{
+				path: "/group-exercise",
+				element: (
+					<ProtectedRoute
+						element={
+							<TitleWrapper title="Group Exercise - Gym Tracker">
+								<GroupExercise />
+							</TitleWrapper>
+						}
+					/>
+				),
+			},
+			{
+				path: "/group-exercise/:groupId",
+				element: (
+					<ProtectedRoute
+						element={
+							<TitleWrapper title="Group Detail - Gym Tracker">
+								<GroupDetail />
+							</TitleWrapper>
+						}
+					/>
+				),
+			},
+			{
+				path: "/group-exercise/:groupId/member/:memberId",
+				element: (
+					<ProtectedRoute
+						element={
+							<TitleWrapper title="Member Detail - Gym Tracker">
+								<MemberDetail />
 							</TitleWrapper>
 						}
 					/>
