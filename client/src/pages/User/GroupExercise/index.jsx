@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../../context/ThemeContext";
-import { GetGroupsAPI, CreateGroupAPI } from "../../../services/ApiServices";
+import { GetGroupsAPI, CreateGroupAPI, DeleteGroupAPI } from "../../../services/ApiServices";
 
 const GroupExercise = () => {
   const { isDark } = useTheme();
@@ -14,6 +14,7 @@ const GroupExercise = () => {
   const [groupName, setGroupName] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const fetchGroups = useCallback(async () => {
     try {
@@ -85,19 +86,44 @@ const GroupExercise = () => {
             {groups.map((group) => {
               const members = Array.isArray(group.members) ? group.members : [];
               return (
-                <button
-                  type="button"
+                <div
                   key={group._id}
-                  onClick={() => navigate(`/group-exercise/${group._id}`)}
                   className="block w-full text-left group"
                 >
                   <div
                     className={`${cardBg} ${cardBorder} border rounded-lg p-4 shadow-sm flex flex-col justify-between group-hover:border-emerald-500 group-hover:shadow-md transition`}
                   >
                     <div>
-                      <h2 className={`text-lg font-semibold mb-1 ${textPrimary}`}>
-                        {group.name || "Group"}
-                      </h2>
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/group-exercise/${group._id}`)}
+                          className={`text-lg font-semibold ${textPrimary} hover:underline text-left`}
+                        >
+                          {group.name || "Group"}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={deletingId === group._id}
+                          onClick={async () => {
+                            const ok = window.confirm("Are you sure you want to delete this group? This cannot be undone.");
+                            if (!ok) return;
+                            try {
+                              setDeletingId(group._id);
+                              await DeleteGroupAPI(group._id);
+                              await fetchGroups();
+                            } catch (err) {
+                              // surface basic error via alert; you can replace with toast later
+                              alert(err?.message || err?.error || "Failed to delete group");
+                            } finally {
+                              setDeletingId(null);
+                            }
+                          }}
+                          className="text-[11px] text-red-500 hover:text-red-400 disabled:opacity-60"
+                        >
+                          {deletingId === group._id ? "Deleting..." : "Delete"}
+                        </button>
+                      </div>
                       <p className={`text-xs ${textSecondary}`}>
                         {members.length} member{members.length === 1 ? "" : "s"}
                       </p>
@@ -106,12 +132,16 @@ const GroupExercise = () => {
                       <span className={`text-xs ${textSecondary}`}>
                         Owner: {group.owner?.name}
                       </span>
-                      <span className="text-xs text-emerald-500 group-hover:text-emerald-400">
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/group-exercise/${group._id}`)}
+                        className="text-xs text-emerald-500 group-hover:text-emerald-400 underline underline-offset-2"
+                      >
                         View group →
-                      </span>
+                      </button>
                     </div>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>

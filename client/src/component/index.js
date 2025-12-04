@@ -6,8 +6,10 @@ import DeleteAccountModal from "./DeleteAcountModal";
 import AddWeightModal from "./AddWeightForm";
 import AddBodyPartModal from "./AddBodyPartModal";
 import AddExerciseModal from "./AddExerciseModal";
+import AddGroupExerciseModal from "./AddGroupExerciseModal";
 import AddBodyPartGroupModal from "./AddBodyPartGroupModal";
 import InviteMemberModal from "./InviteMemberModal";
+import ParticipantHistoryModal from "./ParticipantHistoryModal";
 
 export {
   NotFoundPage,
@@ -18,6 +20,8 @@ export {
   AddWeightModal,
   AddBodyPartModal,
   AddExerciseModal,
+  AddGroupExerciseModal,
   AddBodyPartGroupModal,
-  InviteMemberModal
+  InviteMemberModal,
+  ParticipantHistoryModal
 };

@@ -224,6 +224,26 @@ export const AddExerciseAPI = async ({ bodyPartId, name }) => {
   }
 };
 
+export const CreateGroupExerciseAPI = async (roomId, { bodyPartId, name }) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.post(
+      `${API_URL}/gymmate/groups/${roomId}/exercise`,
+      { bodyPartId, name },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response
+      ? error.response.data
+      : new Error("Create group exercise failed");
+  }
+};
+
 export const GetBodyPartExercisesAPI = async (id) => {
   try {
     const token = sessionStorage.getItem("authToken");
@@ -254,6 +274,25 @@ export const GetExerciseHistoryAPI = async (exerciseId, page = 1, limit = 10) =>
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error("Exercise history fetch failed");
+  }
+};
+
+export const GetGroupExerciseOverviewAPI = async (roomId, exerciseId) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.get(
+      `${API_URL}/gymmate/groups/${roomId}/exercise/${exerciseId}/overview`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response
+      ? error.response.data
+      : new Error("Group exercise overview fetch failed");
   }
 };
 
@@ -325,6 +364,26 @@ export const LogExerciseSetAPI = async ({ exerciseId, weightKg, reps }) => {
   }
 };
 
+export const GroupLogExerciseSetAPI = async ({ roomId, exerciseId, weightKg, reps }) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.post(
+      `${API_URL}/gymmate/groups/${roomId}/set`,
+      { exerciseId, weightKg, reps },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response
+      ? error.response.data
+      : new Error("Group log exercise set failed");
+  }
+};
+
 export const GetUserDetailsAPI = async (id) => {
   try {
     const token = sessionStorage.getItem("authToken");
@@ -389,5 +448,43 @@ export const CreateGroupBodyPartAPI = async (roomId, { days, name }) => {
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error("Create group body part failed");
+  }
+};
+
+export const GetGroupBodyPartExercisesAPI = async (roomId, bodyPartId) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.get(
+      `${API_URL}/gymmate/groups/${roomId}/body-part/${bodyPartId}/exercises`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response
+      ? error.response.data
+      : new Error("Group body part exercises fetch failed");
+  }
+};
+
+export const DeleteGroupAPI = async (roomId) => {
+  try {
+    const token = sessionStorage.getItem("authToken");
+    const response = await axios.delete(
+      `${API_URL}/gymmate/groups/${roomId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response
+      ? error.response.data
+      : new Error("Delete group failed");
   }
 };

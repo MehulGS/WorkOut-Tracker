@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useTheme } from "../../../context/ThemeContext";
 import { GetGroupsAPI, InviteMembersToGroupAPI, GetGroupBodyPartsWithExercisesAPI, CreateGroupBodyPartAPI } from "../../../services/ApiServices";
 import { AddBodyPartGroupModal, InviteMemberModal } from "../../../component";
@@ -7,11 +7,12 @@ import { AddBodyPartGroupModal, InviteMemberModal } from "../../../component";
 const GroupDetail = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const { groupId } = useParams();
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("members");
+  const [activeTab, setActiveTab] = useState(() => location.state?.activeTab || "members");
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteEmails, setInviteEmails] = useState("");
   const [inviting, setInviting] = useState(false);

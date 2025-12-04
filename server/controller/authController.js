@@ -190,11 +190,44 @@ const forgotPassword = async (req, res) => {
     user.resetOtpExpires = expires;
     await user.save();
 
+    const html = `
+      <div style="margin:0;padding:0;background-color:#ffffff;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="background-color:#ffffff;padding:24px 0;">
+          <tr>
+            <td align="center" style="padding:0 12px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" style="max-width:480px;background-color:#ffffff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111827;">
+                <tr>
+                  <td style="padding-bottom:16px;border-bottom:1px solid #e5e7eb;">
+                    <h1 style="margin:0;font-size:20px;font-weight:600;color:#111827;">Reset your Gym Tracker password</h1>
+                    <p style="margin:8px 0 0;font-size:13px;color:#4b5563;">
+                      Use the one-time code below to reset your password. This code is valid for <strong>10 minutes</strong>.
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-top:16px;">
+                    <p style="margin:0 0 12px;font-size:13px;color:#374151;">Your verification code</p>
+                    <div style="display:inline-block;padding:10px 18px;border-radius:999px;background-color:#111827;color:#ffffff;font-size:20px;font-weight:600;letter-spacing:0.3em;text-align:center;">
+                      <span style="letter-spacing:0.3em;">${otp}</span>
+                    </div>
+                    <p style="margin:16px 0 0;font-size:11px;color:#6b7280;">
+                      If you did not request a password reset, you can safely ignore this email.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </div>
+    `;
+
     await transporter.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to: user.email,
       subject: "Your password reset OTP",
       text: `Your OTP for password reset is ${otp}. It is valid for 10 minutes.`,
+      html,
     });
     transporter.verify((err, success) => {
   if (err) {

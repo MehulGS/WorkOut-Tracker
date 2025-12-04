@@ -228,6 +228,42 @@ const getGroupBodyPartsWithExercises = async (req, res) => {
   }
 };
 
+const getGroupExercisesByBodyPart = async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    const { roomId, bodyPartId } = req.params;
+
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    if (!roomId || !bodyPartId) {
+      return res
+        .status(400)
+        .json({ message: "roomId and bodyPartId are required" });
+    }
+
+    const room = await ensureRoomMember(roomId, userId);
+    if (!room) return res.status(403).json({ message: "Not a member of this group" });
+
+    const bodyPart = await BodyPart.findOne({ _id: bodyPartId, gymRoom: roomId });
+    if (!bodyPart) {
+      return res
+        .status(404)
+        .json({ message: "Body part not found in this group" });
+    }
+
+    const exercises = await Exercise.find({
+      gymRoom: roomId,
+      bodyPart: bodyPartId,
+    }).sort({ name: 1 });
+
+    return res.status(200).json(exercises);
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch exercises for body part",
+      error: error.message,
+    });
+  }
+};
+
 const getGroupExerciseOverview = async (req, res) => {
   try {
     const userId = req.user?.userId;
@@ -358,5 +394,6 @@ module.exports = {
   logGroupSet,
   getGroupBodyPartsWithExercises,
   getGroupExerciseOverview,
+  getGroupExercisesByBodyPart,
   deleteGroupExercise,
 };

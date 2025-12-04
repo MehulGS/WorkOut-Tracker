@@ -6,6 +6,7 @@ const {
   removeMember,
   createGymGroup,
   inviteMembersToGroup,
+  deleteGymGroup,
 } = require("../controller/gymMateController");
 const {
   createGroupBodyPart,
@@ -13,6 +14,7 @@ const {
   logGroupSet,
   getGroupBodyPartsWithExercises,
   getGroupExerciseOverview,
+  getGroupExercisesByBodyPart,
   deleteGroupExercise,
 } = require("../controller/groupExerciseController");
 
@@ -23,11 +25,13 @@ router.get("/user/:id", auth, getUserDetails);
 
 router.post("/groups", auth, createGymGroup);
 router.post("/groups/:roomId/invite", auth, inviteMembersToGroup);
+router.delete("/groups/:roomId", auth, deleteGymGroup);
 
 router.post("/groups/:roomId/body-part", auth, createGroupBodyPart);
 router.post("/groups/:roomId/exercise", auth, createGroupExercise);
 router.post("/groups/:roomId/set", auth, logGroupSet);
 router.get("/groups/:roomId/body-parts", auth, getGroupBodyPartsWithExercises);
+router.get("/groups/:roomId/body-part/:bodyPartId/exercises", auth, getGroupExercisesByBodyPart);
 router.get("/groups/:roomId/exercise/:exerciseId/overview", auth, getGroupExerciseOverview);
 router.delete("/groups/:roomId/exercise/:exerciseId", auth, deleteGroupExercise);
 router.delete("/groups/:roomId/member/:memberId", auth, removeMember);
