@@ -4,6 +4,21 @@ import { useTheme } from "../../../context/ThemeContext";
 import { GetGroupsAPI, InviteMembersToGroupAPI, GetGroupBodyPartsWithExercisesAPI, CreateGroupBodyPartAPI } from "../../../services/ApiServices";
 import { AddBodyPartGroupModal, InviteMemberModal } from "../../../component";
 
+const daysOfWeek = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+const getCurrentDay = () => {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  return days[new Date().getDay()];
+};
+
 const GroupDetail = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
@@ -256,110 +271,100 @@ const GroupDetail = () => {
                   No members in this group.
                 </p>
               )}
-            </div>
-          )}
 
-          {activeTab === "exercise" && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className={`text-sm font-medium ${textPrimary}`}>
-                  Group body parts
-                </h2>
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
-                  onClick={() => {
-                    setCreateBodyPartError(null);
-                    setNewBodyPartName("");
-                    setNewBodyPartDay("Monday");
-                    setIsAddBodyPartOpen(true);
-                  }}
-                >
-                  Add body part
-                </button>
-              </div>
+            {!bodyLoading && !bodyError && bodyParts.length > 0 && (
+              <div className="space-y-6">
+                {daysOfWeek.map((day) => {
+                  const dayBodyParts = bodyParts.filter((bp) =>
+                    bp.days === day ||
+                    (Array.isArray(bp.days) && bp.days.includes(day))
+                  );
+                  const isCurrentDay = day === getCurrentDay();
 
-              {bodyLoading && (
-                <p className={`text-xs ${textSecondary}`}>Loading body parts...</p>
-              )}
+                  if (dayBodyParts.length === 0) return null;
 
-              {!bodyLoading && bodyError && (
-                <p className="text-xs text-red-500">{bodyError}</p>
-              )}
-
-              {!bodyLoading && !bodyError && bodyParts.length === 0 && (
-                <p className={`text-xs ${textSecondary}`}>
-                  No body parts added for this group yet.
-                </p>
-              )}
-
-              {!bodyLoading && !bodyError && bodyParts.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {bodyParts.map((bp) => {
-                    const exercises = Array.isArray(bp.exercises)
-                      ? bp.exercises
-                      : [];
-                    const totalExercises = exercises.length;
-                    return (
-                      <button
-                        key={bp._id}
-                        type="button"
-                        onClick={() => navigate(`/group-exercise/${groupId}/body-part/${bp._id}`)}
-                        className={`${cardBg} ${cardBorder} border rounded-lg p-4 shadow-sm flex flex-col justify-between text-left hover:border-emerald-500 hover:shadow-md transition`}
+                  return (
+                    <div key={day} className="space-y-3">
+                      <h4
+                        className={`text-md font-medium ${
+                          isCurrentDay ? "text-emerald-500" : textPrimary
+                        }`}
                       >
-                        <div>
-                          <p className={`text-sm font-semibold mb-1 ${textPrimary}`}>
-                            Day: {bp.days || "-"}
-                          </p>
-                          <p className={`text-xs ${textSecondary}`}>
-                            {bp.name}
-                          </p>
-                          <p className={`text-xs mt-2 ${textSecondary}`}>
-                            {totalExercises} exercise
-                            {totalExercises === 1 ? "" : "s"}
-                          </p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-        </>
-      )}
+                        {day} {isCurrentDay && "(Today)"}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {dayBodyParts.map((bp) => (
+                          <div
+                            key={bp._id}
+                            className={`${cardBg} ${cardBorder} border rounded-lg p-4 ${
+                              isCurrentDay ? "ring-1 ring-emerald-500" : ""
+                            }`}
+                          >
+                            <h5 className={`font-medium mb-2 ${textPrimary}`}>
+                              {bp.name}
+                            </h5>
+                            <div className="space-y-2">
+                              {bp.exercises && bp.exercises.length > 0 ? (
+                                bp.exercises.map((ex) => (
+                                  <div
+                                    key={ex._id}
+                                    className={`text-sm p-2 rounded ${
+                                      isDark ? "bg-slate-700" : "bg-slate-100"
+                                    }`}
+                                  >
+                                    {ex.name}
+                                  </div>
+                                ))
+                              ) : (
+                                <p className={`text-xs ${textSecondary}`}>
+                                  No exercises added
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </>
+    )}
 
-      <InviteMemberModal
-        isOpen={isInviteModalOpen}
-        onClose={() => setIsInviteModalOpen(false)}
-        groupId={groupId}
-        inviteEmails={inviteEmails}
-        setInviteEmails={setInviteEmails}
-        inviting={inviting}
-        inviteError={inviteError}
-        onInvite={handleInviteMembers}
-        textPrimary={textPrimary}
-        textSecondary={textSecondary}
-        cardBg={cardBg}
-        cardBorder={cardBorder}
-      />
+          <InviteMemberModal
+            isOpen={isInviteModalOpen}
+            onClose={() => setIsInviteModalOpen(false)}
+            groupId={groupId}
+            inviteEmails={inviteEmails}
+            setInviteEmails={setInviteEmails}
+            inviting={inviting}
+            inviteError={inviteError}
+            onInvite={handleInviteMembers}
+            textPrimary={textPrimary}
+            textSecondary={textSecondary}
+            cardBg={cardBg}
+            cardBorder={cardBorder}
+          />
 
-      <AddBodyPartGroupModal
-        isOpen={isAddBodyPartOpen}
-        onClose={() => setIsAddBodyPartOpen(false)}
-        groupId={groupId}
-        newBodyPartName={newBodyPartName}
-        setNewBodyPartName={setNewBodyPartName}
-        newBodyPartDay={newBodyPartDay}
-        setNewBodyPartDay={setNewBodyPartDay}
-        creatingBodyPart={creatingBodyPart}
-        createBodyPartError={createBodyPartError}
-        onCreate={handleCreateBodyPart}
-        textPrimary={textPrimary}
-        textSecondary={textSecondary}
-        cardBg={cardBg}
-        cardBorder={cardBorder}
-      />
+          <AddBodyPartGroupModal
+            isOpen={isAddBodyPartOpen}
+            onClose={() => setIsAddBodyPartOpen(false)}
+            groupId={groupId}
+            newBodyPartName={newBodyPartName}
+            setNewBodyPartName={setNewBodyPartName}
+            newBodyPartDay={newBodyPartDay}
+            setNewBodyPartDay={setNewBodyPartDay}
+            creatingBodyPart={creatingBodyPart}
+            createBodyPartError={createBodyPartError}
+            onCreate={handleCreateBodyPart}
+            textPrimary={textPrimary}
+            textSecondary={textSecondary}
+            cardBg={cardBg}
+            cardBorder={cardBorder}
+          />
     </div>
   );
 };
