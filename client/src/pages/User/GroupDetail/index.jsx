@@ -4,6 +4,21 @@ import { useTheme } from "../../../context/ThemeContext";
 import { GetGroupsAPI, InviteMembersToGroupAPI, GetGroupBodyPartsWithExercisesAPI, CreateGroupBodyPartAPI } from "../../../services/ApiServices";
 import { AddBodyPartGroupModal, InviteMemberModal } from "../../../component";
 
+const DAYS_OF_WEEK = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday"
+];
+
+const getCurrentDay = () => {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  return days[new Date().getDay()];
+};
+
 const GroupDetail = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
@@ -260,10 +275,10 @@ const GroupDetail = () => {
           )}
 
           {activeTab === "exercise" && (
-            <div className="space-y-3">
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className={`text-sm font-medium ${textPrimary}`}>
-                  Group body parts
+                  Weekly Workout Plan
                 </h2>
                 <button
                   type="button"
@@ -271,7 +286,7 @@ const GroupDetail = () => {
                   onClick={() => {
                     setCreateBodyPartError(null);
                     setNewBodyPartName("");
-                    setNewBodyPartDay("Monday");
+                    setNewBodyPartDay(getCurrentDay());
                     setIsAddBodyPartOpen(true);
                   }}
                 >
@@ -280,46 +295,71 @@ const GroupDetail = () => {
               </div>
 
               {bodyLoading && (
-                <p className={`text-xs ${textSecondary}`}>Loading body parts...</p>
+                <p className={`text-sm ${textSecondary}`}>Loading workout plan...</p>
               )}
 
               {!bodyLoading && bodyError && (
-                <p className="text-xs text-red-500">{bodyError}</p>
+                <p className="text-sm text-red-500">{bodyError}</p>
               )}
 
               {!bodyLoading && !bodyError && bodyParts.length === 0 && (
-                <p className={`text-xs ${textSecondary}`}>
-                  No body parts added for this group yet.
+                <p className={`text-sm ${textSecondary}`}>
+                  No workout plan found. Add body parts to get started.
                 </p>
               )}
 
               {!bodyLoading && !bodyError && bodyParts.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {bodyParts.map((bp) => {
-                    const exercises = Array.isArray(bp.exercises)
-                      ? bp.exercises
-                      : [];
-                    const totalExercises = exercises.length;
+                <div className="space-y-8">
+                  {DAYS_OF_WEEK.map((day) => {
+                    const dayBodyParts = bodyParts.filter(
+                      (bp) => bp.days === day || (Array.isArray(bp.days) && bp.days.includes(day))
+                    );
+                    const isCurrentDay = day === getCurrentDay();
+
                     return (
-                      <button
-                        key={bp._id}
-                        type="button"
-                        onClick={() => navigate(`/group-exercise/${groupId}/body-part/${bp._id}`)}
-                        className={`${cardBg} ${cardBorder} border rounded-lg p-4 shadow-sm flex flex-col justify-between text-left hover:border-emerald-500 hover:shadow-md transition`}
-                      >
-                        <div>
-                          <p className={`text-sm font-semibold mb-1 ${textPrimary}`}>
-                            Day: {bp.days || "-"}
+                      <div key={day} className="space-y-3">
+                        <h3
+                          className={`text-base font-medium ${
+                            isCurrentDay ? "text-emerald-500" : textPrimary
+                          }`}
+                        >
+                          {day} {isCurrentDay && "(Today)"}
+                        </h3>
+                        
+                        {dayBodyParts.length > 0 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {dayBodyParts.map((bp) => {
+                              const exercises = Array.isArray(bp.exercises) ? bp.exercises : [];
+                              const totalExercises = exercises.length;
+                              
+                              return (
+                                <button
+                                  key={bp._id}
+                                  type="button"
+                                  onClick={() => navigate(`/group-exercise/${groupId}/body-part/${bp._id}`)}
+                                  className={`${cardBg} ${cardBorder} border rounded-lg p-4 shadow-sm flex flex-col justify-between text-left hover:border-emerald-500 hover:shadow-md transition ${
+                                    isCurrentDay ? "ring-1 ring-emerald-500" : ""
+                                  }`}
+                                >
+                                  <div>
+                                    <p className={`text-sm font-semibold mb-1 ${textPrimary}`}>
+                                      {bp.name}
+                                    </p>
+                                    <p className={`text-xs ${textSecondary}`}>
+                                      {totalExercises} exercise
+                                      {totalExercises === 1 ? "" : "s"}
+                                    </p>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className={`text-xs ${textSecondary} italic`}>
+                            No exercises scheduled for {day}
                           </p>
-                          <p className={`text-xs ${textSecondary}`}>
-                            {bp.name}
-                          </p>
-                          <p className={`text-xs mt-2 ${textSecondary}`}>
-                            {totalExercises} exercise
-                            {totalExercises === 1 ? "" : "s"}
-                          </p>
-                        </div>
-                      </button>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
